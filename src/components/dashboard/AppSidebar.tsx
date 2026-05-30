@@ -2,6 +2,7 @@ import { NavLink, Link, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, FileText, Settings, LogOut, ShieldCheck,
   PieChart, BarChart3, Home, Gavel, Target, Zap, Scale, Package, Coins,
+  Building,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,6 +16,7 @@ const navItems = [
   { name: 'Module Contentieux', icon: Scale, path: '/litigation' },
   { name: 'Leasing', icon: Package, path: '/leasing' },
   { name: 'Affacturage & Factoring', icon: Coins, path: '/factoring' },
+  { name: 'Microfinance', icon: Building, path: '/microfinance' },
   { name: 'Veille Réglementaire', icon: ShieldCheck, path: '/regulatory' },
   { name: 'Scoring & Segmentation', icon: Target, path: '/scoring' },
   { name: 'Reporting', icon: PieChart, path: '/reporting' },

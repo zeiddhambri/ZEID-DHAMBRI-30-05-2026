@@ -26,6 +26,7 @@ import Relances from "./pages/Relances";
 import DecisionCredit from "./pages/DecisionCredit";
 import Ifrs9Engine from "./pages/Ifrs9Engine";
 import Factoring from "./pages/Factoring";
+import Microfinance from "./pages/Microfinance";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -59,6 +60,7 @@ const App = () => (
             <Route path="/relances" element={<Relances />} />
             <Route path="/relances/decision-credit" element={<DecisionCredit />} />
             <Route path="/factoring" element={<Factoring />} />
+            <Route path="/microfinance" element={<Microfinance />} />
             <Route path="/settings" element={<Settings />} />
           </Route>
           </Route>
