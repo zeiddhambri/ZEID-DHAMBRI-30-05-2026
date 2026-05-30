@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   ComposedChart, Line, Area, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   ResponsiveContainer, ReferenceLine, ReferenceDot, LineChart,
@@ -16,6 +17,7 @@ import {
   kpis, cashFlowData, cashFlowSummary, recoveryByAgent, channelEffectiveness,
   agentPerformance, funnelData, agingHeatmap, agingBuckets, AGENTS,
 } from '@/lib/analytics-mock';
+import AnalyticsContentieux from '@/components/analytics/AnalyticsContentieux';
 
 const fmtTND = (v: number) => `${(v / 1000).toFixed(0)}k TND`;
 const fmtTNDfull = (v: number) => `${v.toLocaleString('fr-FR')} TND`;
@@ -23,6 +25,9 @@ const fmtTNDfull = (v: number) => `${v.toLocaleString('fr-FR')} TND`;
 type DatePreset = 'week' | 'month' | 'quarter' | 'year' | 'custom';
 
 export default function Analytics() {
+  const [searchParams] = useSearchParams();
+  const currentTab = searchParams.get('tab') || 'recouvrement';
+
   // ─── Global filters ───────────────────────────────────
   const [datePreset, setDatePreset] = useState<DatePreset>('month');
   const [agentFilter, setAgentFilter] = useState<string>('all');
@@ -41,6 +46,10 @@ export default function Analytics() {
       setIsAnalyzing(false);
     }, 1500);
   };
+
+  if (currentTab === 'contentieux') {
+    return <AnalyticsContentieux />;
+  }
 
   return (
     <div className="space-y-6 pb-12">

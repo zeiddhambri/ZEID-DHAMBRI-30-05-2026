@@ -29,6 +29,11 @@ import Factoring from "./pages/Factoring";
 import Microfinance from "./pages/Microfinance";
 import NotFound from "./pages/NotFound";
 
+import MoteurRelance from "./pages/MoteurRelance";
+import ReglesEscalade from "./pages/ReglesEscalade";
+import ModelesMessages from "./pages/ModelesMessages";
+import Workflows from "./pages/Workflows";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -59,6 +64,10 @@ const App = () => (
             <Route path="/scoring" element={<Scoring />} />
             <Route path="/relances" element={<Relances />} />
             <Route path="/relances/decision-credit" element={<DecisionCredit />} />
+            <Route path="/automatisation/moteur-relance" element={<MoteurRelance />} />
+            <Route path="/automatisation/regles-escalade" element={<ReglesEscalade />} />
+            <Route path="/automatisation/modeles-messages" element={<ModelesMessages />} />
+            <Route path="/automatisation/workflows" element={<Workflows />} />
             <Route path="/factoring" element={<Factoring />} />
             <Route path="/microfinance" element={<Microfinance />} />
             <Route path="/settings" element={<Settings />} />

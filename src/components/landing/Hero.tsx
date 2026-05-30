@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import heroImg from '@/assets/hero-recouvrement.jpg';
 
@@ -9,15 +10,22 @@ const tabs = [
 ];
 
 export default function Hero() {
+  const [imageSrc, setImageSrc] = useState(heroImg);
+
   return (
     <section className="relative pt-20 bg-white">
       <div className="relative w-full h-[78vh] min-h-[560px] max-h-[760px] overflow-hidden">
         <img
-          src={heroImg}
+          src={imageSrc}
           alt="Analyse de portefeuille de créances bancaires"
           width={1920}
           height={1080}
           className="absolute inset-0 w-full h-full object-cover"
+          referrerPolicy="no-referrer"
+          onError={() => {
+            // Elegant corporate business planning / banking analytics theme fallback
+            setImageSrc("https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1920&q=80");
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/25 to-transparent" />
 
