@@ -27,12 +27,19 @@ import DecisionCredit from "./pages/DecisionCredit";
 import Ifrs9Engine from "./pages/Ifrs9Engine";
 import Factoring from "./pages/Factoring";
 import Microfinance from "./pages/Microfinance";
+import TousPortefeuilles from "./pages/portefeuilles/TousPortefeuilles";
 import NotFound from "./pages/NotFound";
+import { Navigate } from "react-router-dom";
 
 import MoteurRelance from "./pages/MoteurRelance";
 import ReglesEscalade from "./pages/ReglesEscalade";
 import ModelesMessages from "./pages/ModelesMessages";
 import Workflows from "./pages/Workflows";
+
+import TableauDeBordGlobal from "./pages/pilotage/TableauDeBordGlobal";
+import IndicateursRecouvrement from "./pages/pilotage/IndicateursRecouvrement";
+import IndicateursContentieux from "./pages/pilotage/IndicateursContentieux";
+import Rapports from "./pages/pilotage/Rapports";
 
 const queryClient = new QueryClient();
 
@@ -48,9 +55,12 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route element={<ProtectedRoute />}>
           <Route element={<DashboardLayout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Navigate to="/pilotage/tableau-de-bord-global" replace />} />
+            <Route path="/pilotage/tableau-de-bord-global" element={<TableauDeBordGlobal />} />
             <Route path="/dossiers" element={<Dossiers />} />
-            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/analytics" element={<Navigate to="/pilotage/indicateurs-recouvrement" replace />} />
+            <Route path="/pilotage/indicateurs-recouvrement" element={<IndicateursRecouvrement />} />
+            <Route path="/pilotage/indicateurs-contentieux" element={<IndicateursContentieux />} />
             
             <Route path="/litigation" element={<Litigation />} />
             <Route path="/litigation/:id" element={<LitigationDetail />} />
@@ -60,7 +70,8 @@ const App = () => (
             <Route path="/leasing/:id" element={<LeasingDetail />} />
             <Route path="/regulatory" element={<RegulatoryWatch />} />
             <Route path="/regulatory/ifrs9-engine" element={<Ifrs9Engine />} />
-            <Route path="/reporting" element={<Reporting />} />
+            <Route path="/reporting" element={<Navigate to="/pilotage/rapports" replace />} />
+            <Route path="/pilotage/rapports" element={<Rapports />} />
             <Route path="/scoring" element={<Scoring />} />
             <Route path="/relances" element={<Relances />} />
             <Route path="/relances/decision-credit" element={<DecisionCredit />} />
@@ -70,6 +81,11 @@ const App = () => (
             <Route path="/automatisation/workflows" element={<Workflows />} />
             <Route path="/factoring" element={<Factoring />} />
             <Route path="/microfinance" element={<Microfinance />} />
+            <Route path="/portefeuilles" element={<Navigate to="/portefeuilles/tous" replace />} />
+            <Route path="/portefeuilles/tous" element={<TousPortefeuilles />} />
+            <Route path="/portefeuilles/microfinance" element={<Microfinance />} />
+            <Route path="/portefeuilles/factoring" element={<Factoring />} />
+            <Route path="/portefeuilles/leasing" element={<Leasing />} />
             <Route path="/settings" element={<Settings />} />
           </Route>
           </Route>

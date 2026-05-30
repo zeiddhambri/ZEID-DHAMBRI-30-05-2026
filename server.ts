@@ -346,6 +346,707 @@ async function startServer() {
 
   app.use(express.json({ limit: '10mb' }));
 
+  // --- MOCK RECOVERY DOSSIERS RAW DATA ---
+  const RECOVERY_DOSSIERS_RAW = [
+    { id: 'RCV-2024-001', name: 'SOCIETE ALPHA SARL', code: 'RCV-2024-001', amount: 145000, recovered: 35000, status: 'in_progress', priority: 'High', risk: 'Critique', portfolio: 'Factoring', institution: 'Amen Bank', branch: 'Tunis Belvédère', agent: 'Ahmed B.', delayDays: 45, nextAction: 'Relance téléphonique syndic', nextActionDate: '2026-05-25', hasBrokenPromise: false, visitPlanned: false, lastPaymentAmount: 5000, openDate: '2024-03-15' },
+    { id: 'RCV-2024-002', name: 'BEN SALEM AHMED', code: 'RCV-2024-002', amount: 22000, recovered: 5000, status: 'escalated', priority: 'Medium', risk: 'Moyen', portfolio: 'Leasing', institution: 'Tunisie Leasing', branch: 'Sousse Corniche', agent: 'Sami K.', delayDays: 120, nextAction: 'Visite terrain huissier', nextActionDate: '2026-06-12', hasBrokenPromise: true, visitPlanned: true, lastPaymentAmount: 1200, openDate: '2024-03-14' },
+    { id: 'RCV-2024-003', name: 'GLOBAL TECH TUNISIE', code: 'RCV-2024-003', amount: 890000, recovered: 90000, status: 'in_progress', priority: 'High', risk: 'Élevé', portfolio: 'Factoring', institution: 'Amen Bank', branch: 'Lac Tunis', agent: 'Leila M.', delayDays: 60, nextAction: 'Mise en demeure avocat', nextActionDate: '2026-05-18', hasBrokenPromise: false, visitPlanned: false, lastPaymentAmount: 15000, openDate: '2024-03-13' },
+    { id: 'RCV-2024-004', name: 'KARIM ENTERPRISES', code: 'RCV-2024-004', amount: 56000, recovered: 56000, status: 'recovered', priority: 'Low', risk: 'Faible', portfolio: 'Microfinance', institution: 'Enda Tamweel', branch: 'Sfax El Jadida', agent: 'Ahmed B.', delayDays: 0, nextAction: 'Clôture dossier', nextActionDate: undefined, hasBrokenPromise: false, visitPlanned: false, lastPaymentAmount: 24000, openDate: '2024-03-12' },
+    { id: 'RCV-2024-005', name: 'MEDITERANEE INVEST', code: 'RCV-2024-005', amount: 320000, recovered: 45000, status: 'in_progress', priority: 'Medium', risk: 'Élevé', portfolio: 'Leasing', institution: 'Tunisie Leasing', branch: 'Tunis Centre', agent: 'Nadia T.', delayDays: 35, nextAction: 'Relance Email gérant', nextActionDate: '2026-05-20', hasBrokenPromise: false, visitPlanned: false, lastPaymentAmount: 12000, openDate: '2024-03-11' },
+    { id: 'RCV-2024-006', name: 'SOCIETE CARTHAGE TRANS', code: 'RCV-2024-006', amount: 15000, recovered: 2000, status: 'new', priority: 'Medium', risk: 'Moyen', portfolio: 'Microfinance', institution: 'Enda Tamweel', branch: 'Tunis Centre', agent: 'Nadia T.', delayDays: 14, nextAction: 'Appel SMS automatique', nextActionDate: '2026-06-02', hasBrokenPromise: false, visitPlanned: true, lastPaymentAmount: 500, openDate: '2026-05-20' },
+    { id: 'RCV-2024-007', name: 'TUNISIE CONSEIL SERVICES', code: 'RCV-2024-007', amount: 48000, recovered: 12000, status: 'in_progress', priority: 'High', risk: 'Moyen', portfolio: 'Microfinance', institution: 'Enda Tamweel', branch: 'Sfax El Jadida', agent: 'Ahmed B.', delayDays: 28, nextAction: 'Relance par agent terrain', nextActionDate: '2026-05-29', hasBrokenPromise: true, visitPlanned: true, lastPaymentAmount: 1500, openDate: '2025-11-10' },
+    { id: 'RCV-2024-008', name: 'SOCIETE EL BENNA AGRO', code: 'RCV-2024-008', amount: 185000, recovered: 0, status: 'escalated', priority: 'High', risk: 'Critique', portfolio: 'Factoring', institution: 'Amen Bank', branch: 'Tunis Belvédère', agent: 'Sami K.', delayDays: 95, nextAction: 'Signification sommation', nextActionDate: '2026-05-12', hasBrokenPromise: false, visitPlanned: false, lastPaymentAmount: 0, openDate: '2025-12-05' }
+  ];
+
+  // --- REPORTING IN-MEMORY DATABASES ---
+  const REPORT_DEFINITIONS = [
+    { id: 'rep-01', name: 'Rapport Global des Expositions et Risques', description: 'Synthèse consolidée des encours et taux de retard par type de portefeuille financier.', category: 'portefeuille', report_type: 'global_exposures', available_formats: ['pdf', 'excel', 'csv'], required_permissions: 'view_pilotage', active: true, created_at: '2026-05-01T12:00:00Z' },
+    { id: 'rep-02', name: 'Analyse du PAR 1/7/30/90 par Agence', description: 'Détail de l\'évolution du portefeuille à risque par bucket réglementaire (PAR) et point de vente.', category: 'portefeuille', report_type: 'par_aging', available_formats: ['excel', 'csv'], required_permissions: 'view_pilotage', active: true, created_at: '2026-05-02T12:00:00Z' },
+    { id: 'rep-03', name: 'Bilan d\'Activité et Dossiers de Recouvrement Amiable', description: 'Rapport opérationnel compilant les dossiers affectés, taux de relances réussies, et promesses échues.', category: 'recouvrement', report_type: 'collection_activity', available_formats: ['pdf', 'excel'], required_permissions: 'view_recovery', active: true, created_at: '2026-05-03T12:00:00Z' },
+    { id: 'rep-04', name: 'Rapport d\'Efficacité des Relances et Visites Terrain', description: 'Analyse de productivité des agents et retombées financières des descentes terrain et relances multicanaux.', category: 'recouvrement', report_type: 'reminders_field_visits', available_formats: ['pdf', 'excel', 'csv'], required_permissions: 'view_recovery', active: true, created_at: '2026-05-04T12:00:00Z' },
+    { id: 'rep-05', name: 'État Général des Dossiers au Contentieux & Ratios Judiciaires', description: 'Rapport décisionnel de l\'état des instances judiciaires, honoraires d\'avocat engagés et provisions exigées.', category: 'contentieux', report_type: 'litigation_state', available_formats: ['pdf', 'excel'], required_permissions: 'view_litigation', active: true, created_at: '2026-05-05T12:00:00Z' },
+    { id: 'rep-06', name: 'Inventaire des Garanties, Saisies et Cautions Personnelles', description: 'Rapport analytique listant la valorisation des hypothèques, de leur état légal et de leur taux de couverture.', category: 'contentieux', report_type: 'collateral_inventory', available_formats: ['excel', 'csv'], required_permissions: 'view_litigation', active: true, created_at: '2026-05-06T12:00:00Z' }
+  ];
+
+  const GENERATED_REPORTS = [
+    { id: 'gen-01', report_definition_id: 'rep-01', name: 'Rapport Global des Expositions et Risques', generated_by: 'Ahmed B.', filters: { portfolio: 'All' }, format: 'pdf', file_name: 'Rapport_Global_Expositions_Mai_2026.pdf', status: 'completed', generated_at: '2026-05-28T09:12:00Z', expires_at: '2026-06-28T09:12:00Z' },
+    { id: 'gen-02', report_definition_id: 'rep-03', name: 'Bilan d\'Activité et Dossiers de Recouvrement Amiable', generated_by: 'Sami K.', filters: { portfolio: 'Microfinance' }, format: 'excel', file_name: 'Recouvrement_Amiable_MFI_Q2.xlsx', status: 'completed', generated_at: '2026-05-29T15:30:00Z', expires_at: '2026-06-29T15:30:00Z' },
+    { id: 'gen-03', report_definition_id: 'rep-05', name: 'État Général des Dossiers au Contentieux & Ratios Judiciaires', generated_by: 'Leila M.', filters: { riskLevel: 'Critique' }, format: 'pdf', file_name: 'Dossiers_Critiques_Contentieux.pdf', status: 'completed', generated_at: '2026-05-30T10:15:00Z', expires_at: '2026-06-30T10:15:00Z' }
+  ];
+
+  const SCHEDULED_REPORTS = [
+    { id: 'sch-01', report_definition_id: 'rep-01', name: 'Envoi mensuel Direction Risques', frequency: 'monthly', recipients: ['direction.risques@recovtn.tn', 'audit@recovtn.tn'], filters: { portfolio: 'All' }, format: 'pdf', active: true, last_run_at: '2026-05-01T00:00:00Z', next_run_at: '2026-06-01T00:00:00Z', created_by: 'Ahmed B.' },
+    { id: 'sch-02', report_definition_id: 'rep-03', name: 'Hebdo Performance Recouvreurs', frequency: 'weekly', recipients: ['superviseurs.recouvrement@recovtn.tn'], filters: { portfolio: 'Microfinance' }, format: 'excel', active: true, last_run_at: '2026-05-25T08:00:00Z', next_run_at: '2026-06-01T08:00:00Z', created_by: 'Sami K.' }
+  ];
+
+  // Helper to filter recovery dossiers elegantly
+  function filterRecoveryDossiers(query: any) {
+    let list = [...RECOVERY_DOSSIERS_RAW];
+    if (query.portfolio && query.portfolio !== 'All') {
+      list = list.filter(d => d.portfolio.toLowerCase() === query.portfolio.toLowerCase());
+    }
+    if (query.portfolioType && query.portfolioType !== 'All') {
+      list = list.filter(d => d.portfolio.toLowerCase() === query.portfolioType.toLowerCase());
+    }
+    if (query.institution && query.institution !== 'All') {
+      list = list.filter(d => d.institution.toLowerCase() === query.institution.toLowerCase());
+    }
+    if (query.branch && query.branch !== 'All') {
+      list = list.filter(d => d.branch.toLowerCase() === query.branch.toLowerCase());
+    }
+    if (query.assignedAgentId && query.assignedAgentId !== 'All' && query.assignedAgentId !== 'all') {
+      list = list.filter(d => d.agent.toLowerCase() === query.assignedAgentId.toLowerCase());
+    }
+    if (query.riskLevel && query.riskLevel !== 'All') {
+      list = list.filter(d => d.risk === query.riskLevel);
+    }
+    if (query.status && query.status !== 'All') {
+      list = list.filter(d => d.status === query.status);
+    }
+    if (query.minAmount) {
+      list = list.filter(d => d.amount >= parseFloat(query.minAmount));
+    }
+    if (query.maxAmount) {
+      list = list.filter(d => d.amount <= parseFloat(query.maxAmount));
+    }
+    return list;
+  }
+
+  // --- PILOTAGE: TABLEAU DE BORD GLOBAL ENDPOINTS ---
+
+  app.get('/api/pilotage/tableau-de-bord-global/summary', (req, res) => {
+    try {
+      const q = req.query;
+      const recFiltered = filterRecoveryDossiers(q);
+      const litigationEnriched = enrichCasesData();
+      const litFiltered = filterCases(litigationEnriched, q);
+
+      const recCount = recFiltered.length;
+      // Normalizing active totals based on list vs template scales
+      const scaleFactor = recCount > 0 ? (186 / recCount) : 1;
+
+      // Outstanding math
+      const recOutstanding = recFiltered.reduce((s, d) => s + d.amount, 0) * scaleFactor;
+      const litOutstanding = litFiltered.reduce((s, d) => s + d.totalClaimed, 0);
+      const totalOutstanding = recOutstanding + litOutstanding;
+
+      // Recovered math
+      const recRecovered = recFiltered.reduce((s, d) => s + d.recovered, 0) * scaleFactor;
+      const litRecovered = litFiltered.reduce((s, d) => s + d.recoveredAmount, 0);
+      const totalRecovered = recRecovered + litRecovered;
+
+      // Overdue & remaining
+      const totalOverdue = totalOutstanding * 0.285; // Simulated overdue ratio
+      const remaining = Math.max(0, totalOutstanding - totalRecovered);
+
+      const overdueExposures = Math.round(recFiltered.filter(d => d.status !== 'recovered' && d.delayDays > 0).length * scaleFactor + litFiltered.filter(c => c.stage !== 'closed_recovered').length);
+      const criticalExposures = Math.round(recFiltered.filter(d => d.risk === 'Critique').length * scaleFactor + litFiltered.filter(c => c.riskLevel === 'Critique').length);
+
+      res.json({
+        portfolio: {
+          outstanding: Math.round(totalOutstanding),
+          overdue: Math.round(totalOverdue),
+          recovered: Math.round(totalRecovered),
+          remaining: Math.round(remaining),
+          overdueRate: totalOutstanding > 0 ? parseFloat(((totalOverdue / totalOutstanding) * 100).toFixed(1)) : 0,
+          recoveryRate: totalOutstanding > 0 ? parseFloat(((totalRecovered / totalOutstanding) * 100).toFixed(1)) : 0,
+          totalExposures: Math.round(recFiltered.length * scaleFactor + litFiltered.length),
+          overdueExposures: Math.max(0, overdueExposures),
+          criticalExposures: Math.max(0, criticalExposures),
+          par1: 32.4,
+          par7: 24.6,
+          par30: 17.8,
+          par90: 9.3
+        },
+        recovery: {
+          totalCases: Math.round(recFiltered.length * scaleFactor),
+          newCases: Math.round(recFiltered.filter(d => d.status === 'new').length * scaleFactor),
+          inProgressCases: Math.round(recFiltered.filter(d => d.status === 'in_progress').length * scaleFactor),
+          recoveredCases: Math.round(recFiltered.filter(d => d.status === 'recovered').length * scaleFactor),
+          partialCases: Math.round(recFiltered.filter(d => d.status === 'in_progress' && d.recovered > 0).length * scaleFactor),
+          escalatedCases: Math.round(recFiltered.filter(d => d.status === 'escalated').length * scaleFactor),
+          amountInRecovery: Math.round(recOutstanding),
+          amountRecovered: Math.round(recRecovered),
+          pendingPromises: Math.round(recFiltered.filter(d => !d.hasBrokenPromise && d.status === 'in_progress').length * scaleFactor * 0.35),
+          brokenPromises: Math.round(recFiltered.filter(d => d.hasBrokenPromise).length * scaleFactor),
+          overdueActions: Math.round(recFiltered.filter(d => d.delayDays > 30).length * scaleFactor * 0.18),
+          noNextAction: Math.round(recFiltered.filter(d => !d.nextActionDate).length * scaleFactor * 0.12),
+          fieldVisitsPlanned: Math.round(recFiltered.filter(d => d.visitPlanned).length * scaleFactor),
+          fieldVisitsDone: Math.round(recFiltered.filter(d => d.visitPlanned).length * scaleFactor * 0.65)
+        },
+        litigation: {
+          totalCases: litFiltered.length,
+          preLitigationCount: litFiltered.filter(c => c.stage === 'pre_litigation').length,
+          openCases: litFiltered.filter(c => c.stage !== 'closed_recovered' && c.stage !== 'closed_written_off').length,
+          closedCases: litFiltered.filter(c => c.stage === 'closed_recovered' || c.stage === 'closed_written_off').length,
+          totalClaimAmount: litFiltered.reduce((sum, c) => sum + c.totalClaimed, 0),
+          totalRecoveredAmount: litFiltered.reduce((sum, c) => sum + c.recoveredAmount, 0),
+          feesEngaged: litFiltered.reduce((sum, c) => sum + c.litigationFees, 0),
+          feesRecovered: litFiltered.reduce((sum, c) => sum + (c.recoveredAmount > c.amount.principal ? c.amount.legalFees + c.amount.bailiffFees : 0), 0),
+          overdueActionsCount: litFiltered.filter(c => c.isActionOverdue).length,
+          missingDocumentsCount: litFiltered.reduce((sum, c) => sum + c.missingDocumentsCount, 0),
+          totalGuaranteesValue: litFiltered.reduce((sum, c) => sum + (c.collateralValue || 0), 0),
+          recommendedLossCount: litFiltered.filter(c => c.stage === 'closed_written_off').length
+        },
+        automation: {
+          sentToday: 154,
+          successRate: 93.8,
+          failed: 9,
+          activeWorkflows: 14,
+          autoEscalations: 6,
+          errors: 1
+        }
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.get('/api/pilotage/tableau-de-bord-global/charts', (req, res) => {
+    try {
+      const q = req.query;
+      const recFiltered = filterRecoveryDossiers(q);
+      const litEnriched = enrichCasesData();
+      const litFiltered = filterCases(litEnriched, q);
+
+      // Construct coefficients based on selected portfolio to show dynamic graphs
+      let pCoef = 1;
+      if (q.portfolio && q.portfolio !== 'All') {
+        if (q.portfolio === 'Microfinance') pCoef = 0.25;
+        if (q.portfolio === 'Factoring') pCoef = 0.45;
+        if (q.portfolio === 'Leasing') pCoef = 0.30;
+      }
+
+      // 1. Monthly Trends
+      const monthlyTrend = [
+        { month: 'Janvier', outstanding: Math.round(3800000 * pCoef), overdue: Math.round(1100000 * pCoef), recovered: Math.round(180000 * pCoef) },
+        { month: 'Février', outstanding: Math.round(3900000 * pCoef), overdue: Math.round(1150000 * pCoef), recovered: Math.round(210000 * pCoef) },
+        { month: 'Mars', outstanding: Math.round(4100000 * pCoef), overdue: Math.round(1180000 * pCoef), recovered: Math.round(245000 * pCoef) },
+        { month: 'Avril', outstanding: Math.round(4150000 * pCoef), overdue: Math.round(1210000 * pCoef), recovered: Math.round(195000 * pCoef) },
+        { month: 'Mai', outstanding: Math.round(4250000 * pCoef), overdue: Math.round(1245000 * pCoef), recovered: Math.round(290000 * pCoef) }
+      ];
+
+      // 2. Portfolio share
+      const portfolioShare = [
+        { name: 'Microfinance', value: Math.round(850000 * pCoef), overdue: Math.round(120000 * pCoef) },
+        { name: 'Affacturage', value: Math.round(2100000 * pCoef), overdue: Math.round(750000 * pCoef) },
+        { name: 'Leasing', value: Math.round(1300000 * pCoef), overdue: Math.round(375000 * pCoef) }
+      ];
+
+      // 3. Status share
+      const recoveryStatusShare = [
+        { name: 'Nouveau', value: recFiltered.filter(d => d.status === 'new').length },
+        { name: 'En cours', value: recFiltered.filter(d => d.status === 'in_progress').length },
+        { name: 'Escaladé', value: recFiltered.filter(d => d.status === 'escalated').length },
+        { name: 'Récupéré', value: recFiltered.filter(d => d.status === 'recovered').length }
+      ];
+
+      const litigationStageShare = [
+        { name: 'Pré-contentieux', value: litFiltered.filter(c => c.stage === 'pre_litigation').length },
+        { name: 'En cours de requête', value: litFiltered.filter(c => c.stage === 'injunction_filed' || c.stage === 'in_process').length },
+        { name: 'Jugement obtenu', value: litFiltered.filter(c => c.stage === 'judgment_obtained').length },
+        { name: 'Exécution forcée', value: litFiltered.filter(c => c.stage === 'enforcement').length },
+        { name: 'Clôturé / Récupéré', value: litFiltered.filter(c => c.stage === 'closed_recovered').length }
+      ];
+
+      // 4. Agency & Agent Performance
+      const agencyPerformance = [
+        { agency: 'Tunis Centre', outstanding: Math.round(1450000 * pCoef), recovered: Math.round(320000 * pCoef), efficiency: 78.5 },
+        { agency: 'Tunis Belvédère', outstanding: Math.round(1680000 * pCoef), recovered: Math.round(390000 * pCoef), efficiency: 82.1 },
+        { agency: 'Lac Tunis', outstanding: Math.round(890000 * pCoef), recovered: Math.round(180000 * pCoef), efficiency: 68.2 },
+        { agency: 'Sousse Corniche', outstanding: Math.round(412000 * pCoef), recovered: Math.round(92000 * pCoef), efficiency: 74.0 },
+        { agency: 'Sfax El Jadida', outstanding: Math.round(318000 * pCoef), recovered: Math.round(68000 * pCoef), efficiency: 71.5 }
+      ];
+
+      const agentsPerformance = [
+        { name: 'Ahmed B.', casesCount: 45, recoveredAmount: Math.round(185000 * pCoef), successRate: 85.0 },
+        { name: 'Sami K.', casesCount: 38, recoveredAmount: Math.round(142000 * pCoef), successRate: 79.4 },
+        { name: 'Leila M.', casesCount: 29, recoveredAmount: Math.round(98000 * pCoef), successRate: 71.2 },
+        { name: 'Nadia T.', casesCount: 32, recoveredAmount: Math.round(112000 * pCoef), successRate: 81.0 }
+      ];
+
+      res.json({
+        monthlyTrend,
+        portfolioShare,
+        recoveryStatusShare,
+        litigationStageShare,
+        agencyPerformance,
+        agentsPerformance
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.get('/api/pilotage/tableau-de-bord-global/critical-items', (req, res) => {
+    try {
+      const q = req.query;
+      const recFiltered = filterRecoveryDossiers(q);
+      const litEnriched = enrichCasesData();
+      const litFiltered = filterCases(litEnriched, q);
+
+      // Create uniform representation
+      const items: any[] = [];
+
+      recFiltered.forEach(d => {
+        if (d.risk === 'Critique' || d.priority === 'High' || d.delayDays > 30) {
+          items.push({
+            id: d.id,
+            origin: 'Recouvrement',
+            debtorName: d.name,
+            portfolio: d.portfolio,
+            outstandingAmount: d.amount - d.recovered,
+            delayDays: d.delayDays,
+            riskLevel: d.risk,
+            nextAction: d.nextAction,
+            agent: d.agent
+          });
+        }
+      });
+
+      litFiltered.forEach(c => {
+        if (c.riskLevel === 'Critique' || c.riskLevel === 'Élevé') {
+          items.push({
+            id: c.id,
+            origin: 'Contentieux',
+            debtorName: c.debtor.name,
+            portfolio: c.portfolioType,
+            outstandingAmount: Math.round(c.remainingBalance),
+            delayDays: c.daysOpen,
+            riskLevel: c.riskLevel,
+            nextAction: c.nextAction,
+            agent: c.manager
+          });
+        }
+      });
+
+      // Sort by outstandingAmount desc
+      items.sort((a, b) => b.outstandingAmount - a.outstandingAmount);
+
+      res.json(items.slice(0, 10));
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.post('/api/pilotage/tableau-de-bord-global/ai-analysis', async (req, res) => {
+    try {
+      const { summary, filters } = req.body;
+      const apiKey = process.env.GEMINI_API_KEY;
+
+      if (!apiKey || apiKey === 'MY_GEMINI_API_KEY') {
+        const mockPromptResult = `### 🌐 Rapport d'Audit Cognitif Global - RecovTN
+
+#### 1. Synthèse Posture Risques Clinique
+L'encours global consolidé sous gestion s'élève à **${(summary.portfolio?.outstanding || 4250000).toLocaleString('fr-FR')} TND**, dont **${(summary.portfolio?.overdue || 1211250).toLocaleString('fr-FR')} TND** de créances caractérisées en souffrance (taux d'arriérés brut global de **${summary.portfolio?.overdueRate || '28.5'}%**). 
+Nous observons **${summary.portfolio?.criticalExposures || 6} expositions critiques majeures** nécessitant des interventions à haut niveau.
+
+#### 2. Ratios d'Efficacité par Canal
+*   **Recouvrement Amiable** : Un taux de résolution amiable de **${summary.portfolio?.recoveryRate || '24.1'}%** soutenu par les visites d'agents terrain. La gestion des relances automatiques multicanaux affiche un taux de succès d'envoi de **${summary.automation?.successRate || '93.8'}%**.
+*   **Contentieux et Voies d'Exécutions** : Sur un encours litigieux réclamé de **${(summary.litigation?.totalClaimAmount || 638650).toLocaleString('fr-FR')} TND**, le ratio d'efficacité des frais de justice est optimisé à **17.7%**.
+
+#### 3. Vulnérabilités Majeures Identifiées
+1.  **Dossier Critique GLOBAL TECH TUNISIE (LIT-2024-0003)** : Encours exorbitant de **320 000 TND sans garantie matérielle**. Risque d'insolvabilité imminente.
+2.  **Actifs en Souffrance dans le secteur Factoring** : Concentration anormale de retards sur la branche *Tunis Belvédère*, représentant 39% des arriérés globaux.
+
+#### 4. Recommandations Actionnables Immédiates
+*   **Amiable (0-7 Jours)** : Dégressivité automatique des offres de règlement rééchelonné pour les portefeuilles Microfinance ayant dépassé le PAR 30. Lancer des sommations interpellatives pour les débiteurs de Leasing.
+*   **Contentieux (7-30 Jours)** : Lancement forcé de la vente publique pour le dossier *Ahmed Ben Salem* (LIT-2024-0002). Assigner d'urgence Global Tech en référé conservatoire de saisie bancaire.
+
+*Note de réserve réglementaire : Cette synthèse analytique est générée par l'intelligence artificielle IA-RecovTN. Toute procédure contraignante ou restructuration d'encours doit être approuvée par le Comité d'Audit & Risques de l'institution concernée.*`;
+
+        return res.json({ result: mockPromptResult });
+      }
+
+      const ai = new GoogleGenAI({
+        apiKey: apiKey,
+        httpOptions: {
+          headers: {
+            'User-Agent': 'aistudio-build',
+          }
+        }
+      });
+
+      const systemPrompt = `Vous êtes le moteur d'intelligence de la plateforme RecovTN, conseiller IA expert en restructuration bancaire pour les portefeuilles de Microfinance, Factoring (Affacturage) et Leasing (Crédit-Bail) en Tunisie.
+Analysez rigoureusement le payload du Tableau de Bord Global consolidation (KPIs, filtres, etc) fourni.
+Donnez des recommandations tactiques transverses, claires et exploitables en français professionnel Markdown.
+Structure de la réponse exigée :
+1. Synthèse Posture Risques Clinique
+2. Ratios d'Efficacité par Canal (Amiable vs Contentieux)
+3. Vulnérabilités Majeures Identifiées (Dépassement de seuils, etc)
+4. Recommandations Actionnables Immédiates (Relances, requêtes en référé, exécution de garanties)
+Inclure une clause de réserve réglementaire quant à la validation humaine du comité des risques.`;
+
+      const promptMsg = `Données consolidées du Tableau de bord global à analyser:
+      --- FILTRES ---
+      ${JSON.stringify(filters || {})}
+      
+      --- KPIS CONSOLIDÉS ---
+      EXPOSITION GENERALE: ${JSON.stringify(summary.portfolio || {})}
+      AMIABLE STATUS: ${JSON.stringify(summary.recovery || {})}
+      JUDICIAIRE STATUS: ${JSON.stringify(summary.litigation || {})}
+      AUTOMATISATION EXÉCUTION: ${JSON.stringify(summary.automation || {})}
+      
+      Rédigez d'abord la synthèse et les recommandations.`;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.5-flash',
+        contents: promptMsg,
+        config: {
+          systemInstruction: systemPrompt,
+          temperature: 0.1,
+        }
+      });
+
+      res.json({ result: response.text });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+
+  // --- PILOTAGE: INDICATEURS RECOUVREMENT ENDPOINTS ---
+
+  app.get('/api/pilotage/indicateurs-recouvrement/summary', (req, res) => {
+    try {
+      const q = req.query;
+      const filtered = filterRecoveryDossiers(q);
+      const count = filtered.length;
+      const scaleFactor = count > 0 ? (186 / count) : 1;
+
+      const totalCases = Math.round(count * scaleFactor);
+      const inRecoveryAmount = filtered.reduce((s, d) => s + d.amount, 0) * scaleFactor;
+      const recoveredAmount = filtered.reduce((s, d) => s + d.recovered, 0) * scaleFactor;
+
+      res.json({
+        totalCases,
+        newCases: Math.round(filtered.filter(d => d.status === 'new').length * scaleFactor),
+        inProgressCases: Math.round(filtered.filter(d => d.status === 'in_progress').length * scaleFactor),
+        recoveredCases: Math.round(filtered.filter(d => d.status === 'recovered').length * scaleFactor),
+        partialCases: Math.round(filtered.filter(d => d.status === 'in_progress' && d.recovered > 0).length * scaleFactor),
+        escalatedCases: Math.round(filtered.filter(d => d.status === 'escalated').length * scaleFactor),
+        amountInRecovery: Math.round(inRecoveryAmount),
+        amountRecovered: Math.round(recoveredAmount),
+        recoveryRate: inRecoveryAmount > 0 ? parseFloat(((recoveredAmount / inRecoveryAmount) * 100).toFixed(1)) : 0,
+        pendingPromises: Math.round(filtered.filter(d => !d.hasBrokenPromise && d.status === 'in_progress').length * scaleFactor * 0.35),
+        brokenPromises: Math.round(filtered.filter(d => d.hasBrokenPromise).length * scaleFactor),
+        overdueActions: Math.round(filtered.filter(d => d.delayDays > 30).length * scaleFactor * 0.18),
+        noNextAction: Math.round(filtered.filter(d => !d.nextActionDate).length * scaleFactor * 0.12),
+        fieldVisitsPlanned: Math.round(filtered.filter(d => d.visitPlanned).length * scaleFactor),
+        fieldVisitsDone: Math.round(filtered.filter(d => d.visitPlanned).length * scaleFactor * 0.65)
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.get('/api/pilotage/indicateurs-recouvrement/charts', (req, res) => {
+    try {
+      const q = req.query;
+      let pCoef = 1;
+      if (q.portfolio && q.portfolio !== 'All') {
+        if (q.portfolio === 'Microfinance') pCoef = 0.25;
+        if (q.portfolio === 'Factoring') pCoef = 0.45;
+        if (q.portfolio === 'Leasing') pCoef = 0.30;
+      }
+
+      // Monthly payment recoveries
+      const monthlyRecoveryTrend = [
+        { month: 'Janvier', target: Math.round(200000 * pCoef), achieved: Math.round(180000 * pCoef) },
+        { month: 'Février', target: Math.round(220000 * pCoef), achieved: Math.round(210000 * pCoef) },
+        { month: 'Mars', target: Math.round(250000 * pCoef), achieved: Math.round(245000 * pCoef) },
+        { month: 'Avril', target: Math.round(260000 * pCoef), achieved: Math.round(195000 * pCoef) },
+        { month: 'Mai', target: Math.round(300000 * pCoef), achieved: Math.round(290000 * pCoef) }
+      ];
+
+      // Efficiency indicators (SMS, e-mail, phone call to converted payment)
+      const efficiencyMetrics = [
+        { name: 'Appels Téléphoniques', sent: 1240, success: 420 },
+        { name: 'Relances SMS', sent: 3500, success: 840 },
+        { name: 'Emails Automatisés', sent: 1800, success: 320 },
+        { name: 'Visites Terrain', sent: 154, success: 85 }
+      ];
+
+      // Field visits outcomes
+      const visitOutcomes = [
+        { name: 'Engagement de paiement pris', value: 52 },
+        { name: 'Promesse formalisée ultérieure', value: 38 },
+        { name: 'Débiteur Absent de l\'adresse', value: 42 },
+        { name: 'Refus catégorique de coopération', value: 22 }
+      ];
+
+      res.json({
+        monthlyRecoveryTrend,
+        efficiencyMetrics,
+        visitOutcomes
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.get('/api/pilotage/indicateurs-recouvrement/table', (req, res) => {
+    try {
+      const list = filterRecoveryDossiers(req.query);
+      res.json({
+        data: list,
+        total: list.length
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.post('/api/pilotage/indicateurs-recouvrement/ai-analysis', async (req, res) => {
+    try {
+      const { summary, filters } = req.body;
+      const apiKey = process.env.GEMINI_API_KEY;
+
+      if (!apiKey || apiKey === 'MY_GEMINI_API_KEY') {
+        const mockPromptResult = `### 📞 Rapport d'Optimisation du Recouvrement Amiable
+
+#### 1. Constat Général des Relances
+Sur un total de **${summary.totalCases || 186} dossiers amiables**, le volume global récupéré s'élève à **${(summary.amountRecovered || 550000).toLocaleString('fr-FR')} TND** sur **${(summary.amountInRecovery || 1850000).toLocaleString('fr-FR')} TND** affectés, ce qui représente un taux d'apurement global de **${summary.recoveryRate || '29.7'}%**. 
+
+#### 2. Ratios d'Efficacité des Actions de Contact
+*   **Visites Terrain** : Extrêmement performantes avec un taux de réussite de **55%** (sur un plan de **${summary.fieldVisitsPlanned || 15} visites**, **${summary.fieldVisitsDone || 9} ont été résolues avec engagement**).
+*   **Promesses de Paiement** : Vigilance requise. On dénombre **${summary.brokenPromises || 4} promesses fermes non honorées** (rompues) représentant un manque à gagner de 62 400 TND ce mois-ci.
+
+#### 3. Détection de goulots d'étranglement opérationnels
+*   **Actions Critiques en Retard** : On enregistre **${summary.overdueActions || 3} processus de relance orphelins**, sans prochaine étape planifiée par les recouvreurs. Cette inactivité altère la réactivité du recouvrement précoce.
+*   **Délai d'Inaction Moyen** : La moyenne de traitement amiable dépasse 45 jours d'exposition de delay ouverts sans encaissements significatifs.
+
+#### 4. Recommandations et Canaux Requis
+*   **Canal Téléphonique / SMS (0-48h)** : Déclencher d'urgence le workflow "Promesses Rompues" qui émet un avertissement automatique par SMS de mise en demeure amiable pré-contentieuse.
+*   **Visites de masse (Sous 15 Jours)** : Prioriser les descentes physiques sur les dossiers de Microfinance de la zone de Sfax El Jadida où le taux de retour est le plus dégradé.
+
+*Note de réserve technique : Cette analyse est formulée par le conseiller d'automatisation cognitive RecovTN. Tout rééchelonnement de créances commerciales doit faire l'objet d'un avenant écrit signé et tamponné.*`;
+
+        return res.json({ result: mockPromptResult });
+      }
+
+      const ai = new GoogleGenAI({
+        apiKey: apiKey,
+        httpOptions: {
+          headers: {
+            'User-Agent': 'aistudio-build',
+          }
+        }
+      });
+
+      const systemPrompt = `Vous êtes le module d'intelligence RecovTN spécialisé en recouvrement amiable (Microfinance, Affacturage, Leasing).
+Analysez rigoureusement les données fournies pour proposer des stratégies d'optimisation des relances, du mailing d'impact, et de l'ordonnancement des visites de terrain en Tunisie.
+Votre rapport doit respecter scrupuleusement la structure Markdown suivante:
+1. Constat Général des Relances et Apurement Amiable
+2. Ratios d'Efficacité des Actions de Contact (Visites, Téléphone, SMS)
+3. Détection de Goulots d'Étranglement Opérationnels (Relances orphelines, etc)
+4. Recommandations et Canaux Requis (Amiable coercitif vs Soft-collection, scripts d'appels)
+Inclure de manière visible une clause de validation par la direction opérationnelle.`;
+
+      const promptMsg = `Voici les KPIs amiables consolidés sous filtres :
+      --- FILTRES APPLICATION ---
+      ${JSON.stringify(filters || {})}
+      
+      --- DETAILED REC KPIS ---
+      ${JSON.stringify(summary || {})}
+      
+      Rédigez l'audit.`;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.5-flash',
+        contents: promptMsg,
+        config: {
+          systemInstruction: systemPrompt,
+          temperature: 0.1,
+        }
+      });
+
+      res.json({ result: response.text });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.get('/api/pilotage/indicateurs-recouvrement/export', (req, res) => {
+    try {
+      res.json({
+        success: true,
+        message: 'Export des indicateurs de recouvrement généré avec succès.',
+        format: req.query.format || 'excel',
+        fileUrl: '/api/pilotage/rapports/generated/gen-02/download'
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+
+  // --- PILOTAGE: RAPPORTS & PLANNING ENDPOINTS ---
+
+  app.get('/api/pilotage/rapports', (req, res) => {
+    try {
+      let list = [...REPORT_DEFINITIONS];
+      if (req.query.category && req.query.category !== 'All') {
+        list = list.filter(r => r.category === req.query.category);
+      }
+      res.json(list);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.get('/api/pilotage/rapports/generated', (req, res) => {
+    try {
+      res.json(GENERATED_REPORTS);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.post('/api/pilotage/rapports/:id/generate', (req, res) => {
+    try {
+      const defId = req.params.id;
+      const def = REPORT_DEFINITIONS.find(r => r.id === defId);
+      if (!def) {
+        return res.status(404).json({ error: 'Définition de rapport non trouvée' });
+      }
+
+      const format = req.body.format || def.available_formats[0] || 'pdf';
+      const filters = req.body.filters || {};
+      const generatedId = `gen-${Date.now().toString().slice(-4)}`;
+
+      const newReport = {
+        id: generatedId,
+        report_definition_id: defId,
+        name: def.name,
+        generated_by: req.body.userEmail || 'Utilisateur Témoin',
+        filters,
+        format,
+        file_name: `${def.name.replace(/\s+/g, '_')}_${generatedId}.${format}`,
+        status: 'completed', // instant completed mockup
+        generated_at: new Date().toISOString(),
+        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+      };
+
+      GENERATED_REPORTS.unshift(newReport);
+      res.status(201).json(newReport);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.get('/api/pilotage/rapports/generated/:id/download', (req, res) => {
+    try {
+      const report = GENERATED_REPORTS.find(r => r.id === req.params.id);
+      if (!report) {
+        return res.status(404).send('Rapport introuvable');
+      }
+
+      res.setHeader('Content-disposition', `attachment; filename=${report.file_name}`);
+      res.setHeader('Content-type', report.format === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      
+      const content = `RECOVTN REPORT EXPORT - CONSOLIDATED METRICS\nID: ${report.id}\nName: ${report.name}\nGenerated By: ${report.generated_by}\nTimestamp: ${report.generated_at}\nStatus: Completed\nThis is a simulated ${report.format.toUpperCase()} data stream content.`;
+      res.send(Buffer.from(content));
+    } catch (err: any) {
+      res.status(500).send(err.message);
+    }
+  });
+
+  app.post('/api/pilotage/rapports/scheduled', (req, res) => {
+    try {
+      const { report_definition_id, name, frequency, recipients, filters, format } = req.body;
+      const def = REPORT_DEFINITIONS.find(r => r.id === report_definition_id);
+      if (!def) {
+        return res.status(404).json({ error: 'Définition de rapport non trouvée' });
+      }
+
+      const newSchedule = {
+        id: `sch-${Date.now().toString().slice(-4)}`,
+        report_definition_id,
+        name: name || `Planification ${def.name}`,
+        frequency,
+        recipients: recipients || [],
+        filters: filters || {},
+        format: format || 'pdf',
+        active: true,
+        last_run_at: new Date().toISOString(),
+        next_run_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        created_by: req.body.createdBy || 'Utilisateur Témoin'
+      };
+
+      SCHEDULED_REPORTS.unshift(newSchedule);
+      res.status(201).json(newSchedule);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.patch('/api/pilotage/rapports/scheduled/:id', (req, res) => {
+    try {
+      const schId = req.params.id;
+      const index = SCHEDULED_REPORTS.findIndex(s => s.id === schId);
+      if (index === -1) {
+        return res.status(404).json({ error: 'Planification introuvable' });
+      }
+
+      SCHEDULED_REPORTS[index] = {
+        ...SCHEDULED_REPORTS[index],
+        ...req.body
+      };
+
+      res.json(SCHEDULED_REPORTS[index]);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.post('/api/pilotage/rapports/:id/ai-analysis', async (req, res) => {
+    try {
+      const defId = req.params.id;
+      const def = REPORT_DEFINITIONS.find(r => r.id === defId);
+      const apiKey = process.env.GEMINI_API_KEY;
+
+      if (!apiKey || apiKey === 'MY_GEMINI_API_KEY') {
+        return res.json({
+          result: `### 📊 Conseils d'Audit Précoce de l'IA pour : ${def?.name || "Rapport Spécifique"}
+          
+1. **Périodicité d'Envoi Optimale** : Le système recommande un envoi **hebdomadaire** au lieu de mensuel compte-tenu de la vélocité des dégradations observées sur les PAR 30.
+2. **Recommandations de Filtres Fins** : Exclure systématiquement les dossiers sous "Restructuration en cours" (Avenant BCT) pour conserver une vision objective de la performance brute des agents.
+3. **Optimisation d'Audience** : Ajouter les directeurs régionaux et les superviseurs terrain à la liste de distribution directe pour réduire l'inertie de transmission des alertes de 3.5 jours à moins de 2 heures.`
+        });
+      }
+
+      const ai = new GoogleGenAI({
+        apiKey: apiKey,
+        httpOptions: { headers: { 'User-Agent': 'aistudio-build' } }
+      });
+
+      const promptMsg = `Analyse la définition du rapport suivant: ${JSON.stringify(def || {})} et suggère des optimisations d'automatisation des envois de rapports et d'optimisations des filtres de risques préconisés. Rédige ta réponse en français professionnel sous forme abrégée en Markdown.`;
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.5-flash',
+        contents: promptMsg,
+        config: {
+          systemInstruction: 'Vous êtes un ingénieur expert des systèmes décisionnels d\'audit et des technologies de reporting financier.'
+        }
+      });
+      res.json({ result: response.text });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.get('/api/pilotage/rapports/export', (req, res) => {
+    try {
+      res.json({
+        success: true,
+        message: 'Fichier de rapports exporté avec succès.',
+        format: req.query.format || 'excel'
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   // 1. GET /api/pilotage/indicateurs-contentieux/summary
   app.get('/api/pilotage/indicateurs-contentieux/summary', (req, res) => {
     try {
@@ -749,6 +1450,89 @@ Votre analyse doit impérativement respecter les règles strictes suivantes:
       })))}
       
       Veuillez rédiger le rapport en français professionnel, lisible en Markdown, très structuré et exploitable.`;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.5-flash',
+        contents: promptMsg,
+        config: {
+          systemInstruction: systemPrompt,
+          temperature: 0.1,
+        }
+      });
+
+      res.json({ result: response.text });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // POST /api/portefeuilles/ai-analysis
+  app.post('/api/portefeuilles/ai-analysis', async (req, res) => {
+    try {
+      const { summary, filters } = req.body;
+      const apiKey = process.env.GEMINI_API_KEY;
+
+      if (!apiKey || apiKey === 'MY_GEMINI_API_KEY') {
+        const fallback = `### 📋 Synthèse d'Audit Réglementaire par l'IA
+
+#### 1. Constat Global du Risque consolidé
+Le portefeuille global fusionné (Microfinance, Factoring, Leasing) présente une exposition totale sous gestion de **${(summary.totalOutstanding || 0).toLocaleString('fr-FR')} TND** avec un solde en souffrance accumulé de **${(summary.totalOverdue || 0).toLocaleString('fr-FR')} TND** (soit un taux de retard brut de **${summary.totalOutstanding > 0 ? ((summary.totalOverdue / summary.totalOutstanding) * 100).toFixed(1) : '0.0'}%**). 
+Le **PAR 30 moyen consolidé** s'établit à **${(summary.par30Weighted || 0).toFixed(1)}%**.
+
+#### 2. Recommandations par Type de Portefeuille
+*   **Microfinance (MFI)** : Le risque de recouvrement de masse exige des campagnes de relance automatisées par SMS/WhatsApp. Les visites terrain doivent être priorisées sur les retards de 15 à 30 jours pour éviter le glissement en provision règlementaire Banque Centrale de Tunisie (BCT).
+*   **Factoring (Affacturage)** : Consolider le suivi des débiteurs cédés (acheteurs). Le niveau de contestation (litiges) doit être surveillé à moins de 2% du volume cédé pour maintenir la trésorerie de l'adhérent saine.
+*   **Leasing (Crédit-bail)** : Activer les clauses contractuelles de résiliation anticipée et procéder à la reprise physique des biens garantis (véhicules ou équipements lourds) dès J+60 de retard.
+
+#### 3. Focus Sectoriel & Risques Associés (Normes BCT & IFRS 9)
+*   Le secteur **Services / Commerce** concentre 45% des créances saines. Vigilance sur l'inflation et la réactivité des petites entreprises.
+*   Le secteur **Agriculture / Transport** concentre la majorité des dossiers classés en *Watchlist* ou *Douteux*. Le taux de provisionnement prudentiel doit être réévalué suite aux variations climatiques et hausses logistiques.
+
+#### 4. Plan de Résolution Opérationnelle (7 à 30 Jours)
+- **7 Jours** : Relancer par notification automatisée WhatsApp / SMS les dossiers en retard de 1 à 7 jours.
+- **15 Jours** : Lancer des procédures d'injonction de payer pour les créances nues de Factoring de plus de 90 jours (ex: Global Tech).
+- **30 Jours** : Procéder à des inspections physiques des matériels financés en Leasing pour s'assurer de leur valeur de revente sur le marché de l'occasion.
+
+*Note de réserve réglementaire : Cette recommandation automatique est générée par le moteur cognitif RecovTN sur la base des normes macro-prudentielles de la Banque Centrale de Tunisie. Elle doit être validée par le comité des risques bancaires.*`;
+        return res.json({ result: fallback });
+      }
+
+      const ai = new GoogleGenAI({
+        apiKey: apiKey,
+        httpOptions: {
+          headers: {
+            'User-Agent': 'aistudio-build',
+          }
+        }
+      });
+
+      const systemPrompt = `Vous êtes un analyste expert en gestion des risques de crédit et du provisionnement bancaire selon les normes de la Banque Centrale de Tunisie (BCT) et la norme IFRS 9.
+Analysez avec rigueur le payload fourni (indicateurs clés consolidés des portefeuilles et filtres).
+Votre analyse doit impérativement respecter les règles strictes suivantes:
+1. Ne JAMAIS inventer d'informations. Utilisez strictement les données fournies.
+2. Donnez des recommandations concrètes de recouvrement, priorisées et exploitables.
+3. Évitez de donner des conseils juridiques définitifs, incluez une clause de réserve réglementaire quant à la validation humaine du comité des risques.
+4. Rédigez le rapport en français professionnel, lisible en Markdown, très structuré et exploitable.`;
+
+      const promptMsg = `Voici les données consolidées des trois portefeuilles (Microfinance, Factoring, Leasing) à analyser :
+      
+      --- FILTRES APPLIQUÉS ---
+      ${JSON.stringify(filters || {})}
+      
+      --- KPIS CONSOLIDÉS ---
+      Encours total consolidé: ${summary.totalOutstanding} TND
+      Solde cumulé en souffrance (Retards): ${summary.totalOverdue} TND
+      PAR 30 moyen consolidé: ${summary.par30Weighted}%
+      Volume d'affaires / Revenus estimés: ${summary.totalRevenue} TND
+      Secteur le plus exposé: ${summary.topSector}
+      Statut de risque prioritaire: ${summary.riskLevel}
+      
+      Rédigez une synthèse d'audit du risque sous forme de rapport Markdown avec :
+      1. Constat Global du Risque consolidé
+      2. Recommandations stratégiques par type de portefeuille (Microfinance, Factoring, Leasing)
+      3. Focus Sectoriel & Risques Associés (Normes BCT & IFRS 9)
+      4. Plan de Résolution Opérationnelle (7 à 30 Jours)
+      5. Clause de validation humaine`;
 
       const response = await ai.models.generateContent({
         model: 'gemini-3.5-flash',

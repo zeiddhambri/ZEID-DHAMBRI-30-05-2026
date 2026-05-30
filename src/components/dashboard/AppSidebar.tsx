@@ -34,10 +34,10 @@ const sidebarGroups: SidebarGroup[] = [
     title: 'Pilotage',
     icon: LayoutDashboard,
     items: [
-      { name: 'Tableau de bord global', icon: LayoutDashboard, path: '/dashboard' },
-      { name: 'Indicateurs recouvrement', icon: BarChart3, path: '/analytics', tab: 'recouvrement' },
-      { name: 'Indicateurs contentieux', icon: PieChart, path: '/analytics', tab: 'contentieux' },
-      { name: 'Rapports', icon: FileText, path: '/reporting' }
+      { name: 'Tableau de bord global', icon: LayoutDashboard, path: '/pilotage/tableau-de-bord-global' },
+      { name: 'Indicateurs recouvrement', icon: BarChart3, path: '/pilotage/indicateurs-recouvrement' },
+      { name: 'Indicateurs contentieux', icon: PieChart, path: '/pilotage/indicateurs-contentieux' },
+      { name: 'Rapports', icon: FileText, path: '/pilotage/rapports' }
     ]
   },
   {
@@ -45,10 +45,10 @@ const sidebarGroups: SidebarGroup[] = [
     title: 'Portefeuilles',
     icon: Briefcase,
     items: [
-      { name: 'Tous les portefeuilles', icon: Briefcase, path: '/scoring' },
-      { name: 'Microfinance', icon: Building, path: '/microfinance' },
-      { name: 'Affacturage / Factoring', icon: Coins, path: '/factoring' },
-      { name: 'Leasing', icon: Package, path: '/leasing' }
+      { name: 'Tous les portefeuilles', icon: Briefcase, path: '/portefeuilles/tous' },
+      { name: 'Microfinance', icon: Building, path: '/portefeuilles/microfinance' },
+      { name: 'Affacturage / Factoring', icon: Coins, path: '/portefeuilles/factoring' },
+      { name: 'Leasing', icon: Package, path: '/portefeuilles/leasing' }
     ]
   },
   {
