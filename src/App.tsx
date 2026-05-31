@@ -40,6 +40,7 @@ import TableauDeBordGlobal from "./pages/pilotage/TableauDeBordGlobal";
 import IndicateursRecouvrement from "./pages/pilotage/IndicateursRecouvrement";
 import IndicateursContentieux from "./pages/pilotage/IndicateursContentieux";
 import Rapports from "./pages/pilotage/Rapports";
+import CreditIfrs9 from "./pages/CreditIfrs9";
 
 const queryClient = new QueryClient();
 
@@ -86,6 +87,8 @@ const App = () => (
             <Route path="/portefeuilles/microfinance" element={<Microfinance />} />
             <Route path="/portefeuilles/factoring" element={<Factoring />} />
             <Route path="/portefeuilles/leasing" element={<Leasing />} />
+            <Route path="/credit-ifrs9" element={<Navigate to="/credit-ifrs9/nouveau" replace />} />
+            <Route path="/credit-ifrs9/:activeTab" element={<CreditIfrs9 />} />
             <Route path="/settings" element={<Settings />} />
           </Route>
           </Route>

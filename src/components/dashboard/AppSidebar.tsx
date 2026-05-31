@@ -8,7 +8,8 @@ import {
   ShieldAlert, Gavel, Scale, Shield, Receipt,
   Zap, Sliders, Smartphone, Workflow,
   Users, Settings, Cable, Database, KeyRound,
-  ShieldCheck, LogOut, ChevronDown, ChevronRight
+  ShieldCheck, LogOut, ChevronDown, ChevronRight,
+  Brain
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -78,6 +79,18 @@ const sidebarGroups: SidebarGroup[] = [
     ]
   },
   {
+    id: 'credit_ifrs9',
+    title: "Octroi & IFRS 9",
+    icon: Brain,
+    items: [
+      { name: 'Nouveau Dossier', icon: CheckCircle2, path: '/credit-ifrs9/nouveau' },
+      { name: 'Mes Analyses', icon: FileText, path: '/credit-ifrs9/analyses' },
+      { name: 'Historique', icon: Database, path: '/credit-ifrs9/historique' },
+      { name: 'Modèles Sectoriels', icon: Shield, path: '/credit-ifrs9/modeles' },
+      { name: 'Paramètres Moteur', icon: Sliders, path: '/credit-ifrs9/parametres' }
+    ]
+  },
+  {
     id: 'automatisation',
     title: 'Automatisation',
     icon: Zap,
@@ -114,6 +127,7 @@ export default function AppSidebar() {
     portefeuilles: true,
     recouvrement: false,
     contentieux: false,
+    credit_ifrs9: false,
     automatisation: false,
     administration: false,
   });
