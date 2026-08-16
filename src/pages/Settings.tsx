@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Users, Shield, UserCog, Search, CheckCircle2, Scale, Zap, Bell, AlertTriangle, FileWarning } from 'lucide-react';
+import { Users, Shield, UserCog, Search, CheckCircle2, Scale, Zap, Bell, AlertTriangle, FileWarning, Sun, Moon, Monitor, Palette } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface UserProfile {
   uid: string;
@@ -28,6 +29,7 @@ const mockUsers: UserProfile[] = [
 ];
 
 export default function Settings() {
+  const { theme, resolvedTheme, setTheme } = useTheme();
   const [searchTerm, setSearchTerm] = useState('');
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -45,8 +47,8 @@ export default function Settings() {
     <div className="space-y-8 pb-12">
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-black text-navy tracking-tight font-syne">Paramètres d'administration</h1>
-          <p className="text-muted-foreground mt-1">Gérez les utilisateurs et les rôles de votre organisation.</p>
+          <h1 className="text-3xl font-black text-navy dark:text-white tracking-tight font-syne">Paramètres d'administration</h1>
+          <p className="text-muted-foreground mt-1">Gérez les utilisateurs, l'apparence visuelle et les règles de votre organisation.</p>
         </div>
       </div>
 
@@ -55,12 +57,101 @@ export default function Settings() {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0 }}
-          className="flex items-center gap-2 p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm font-bold"
+          className="flex items-center gap-2 p-4 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl text-emerald-700 dark:text-emerald-300 text-sm font-bold"
         >
           <CheckCircle2 size={18} />
           {successMessage}
         </motion.div>
       )}
+
+      {/* App Theme & Display Preferences Card */}
+      <div className="bg-card rounded-3xl p-6 sm:p-8 shadow-sm border border-border">
+        <div className="flex items-center justify-between gap-4 mb-6 pb-4 border-b border-border">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-sky/10 dark:bg-sky/20 flex items-center justify-center text-sky">
+              <Palette size={20} />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-navy dark:text-white font-syne">Thème & Expérience Visuelle</h2>
+              <p className="text-xs text-muted-foreground">Personnalisez le mode d'affichage pour une ergonomie optimale de jour comme de nuit.</p>
+            </div>
+          </div>
+          <span className="text-xs font-semibold px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+            Actif : {resolvedTheme === 'dark' ? '🌙 Mode Sombre' : '☀️ Mode Clair'}
+          </span>
+        </div>
+
+        <div className="grid sm:grid-cols-3 gap-4">
+          <button
+            onClick={() => setTheme('light')}
+            className={cn(
+              "p-4 rounded-2xl border text-left transition-all relative group flex flex-col justify-between h-36",
+              theme === 'light'
+                ? "border-sky bg-sky/5 ring-2 ring-sky/20 shadow-sm"
+                : "border-border bg-paper hover:bg-slate-50 dark:hover:bg-slate-800/50"
+            )}
+          >
+            <div className="flex items-center justify-between w-full">
+              <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-200">
+                <Sun size={18} />
+              </div>
+              {theme === 'light' && (
+                <CheckCircle2 size={18} className="text-sky" />
+              )}
+            </div>
+            <div>
+              <div className="font-bold text-sm text-charcoal dark:text-white">Mode Clair</div>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Contraste élevé pour les environnements de travail lumineux.</p>
+            </div>
+          </button>
+
+          <button
+            onClick={() => setTheme('dark')}
+            className={cn(
+              "p-4 rounded-2xl border text-left transition-all relative group flex flex-col justify-between h-36",
+              theme === 'dark'
+                ? "border-sky bg-sky/10 ring-2 ring-sky/30 shadow-sm"
+                : "border-border bg-paper hover:bg-slate-50 dark:hover:bg-slate-800/50"
+            )}
+          >
+            <div className="flex items-center justify-between w-full">
+              <div className="w-9 h-9 rounded-xl bg-slate-800 text-amber-400 flex items-center justify-center border border-slate-700">
+                <Moon size={18} />
+              </div>
+              {theme === 'dark' && (
+                <CheckCircle2 size={18} className="text-sky" />
+              )}
+            </div>
+            <div>
+              <div className="font-bold text-sm text-charcoal dark:text-white">Mode Sombre</div>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Repos visuel avec tons midnight navy et contraste adouci.</p>
+            </div>
+          </button>
+
+          <button
+            onClick={() => setTheme('system')}
+            className={cn(
+              "p-4 rounded-2xl border text-left transition-all relative group flex flex-col justify-between h-36",
+              theme === 'system'
+                ? "border-sky bg-sky/5 dark:bg-sky/10 ring-2 ring-sky/20 shadow-sm"
+                : "border-border bg-paper hover:bg-slate-50 dark:hover:bg-slate-800/50"
+            )}
+          >
+            <div className="flex items-center justify-between w-full">
+              <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center border border-border">
+                <Monitor size={18} />
+              </div>
+              {theme === 'system' && (
+                <CheckCircle2 size={18} className="text-sky" />
+              )}
+            </div>
+            <div>
+              <div className="font-bold text-sm text-charcoal dark:text-white">Automatique / Système</div>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Suit automatiquement les préférences de votre système d'exploitation.</p>
+            </div>
+          </button>
+        </div>
+      </div>
 
       <div className="bg-card rounded-3xl shadow-sm border border-border overflow-hidden">
         <div className="p-6 border-b border-border flex items-center justify-between">

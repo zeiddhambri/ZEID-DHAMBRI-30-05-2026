@@ -1,9 +1,11 @@
 import { Outlet } from 'react-router-dom';
 import AppSidebar from './AppSidebar';
+import { GlobalSearchDialog } from '@/components/common/GlobalSearchDialog';
 
 export default function DashboardLayout() {
   return (
-    <div className="flex bg-mist min-h-screen">
+    <div className="flex bg-mist dark:bg-slate-950 text-foreground min-h-screen transition-colors duration-200">
+      <GlobalSearchDialog />
       <AppSidebar />
       <main className="flex-1 ml-64 p-8">
         <div className="max-w-7xl mx-auto">

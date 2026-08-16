@@ -9,10 +9,11 @@ import {
   Zap, Sliders, Smartphone, Workflow,
   Users, Settings, Cable, Database, KeyRound,
   ShieldCheck, LogOut, ChevronDown, ChevronRight,
-  Brain
+  Brain, Moon, Sun, Monitor
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { toast } from '@/hooks/use-toast';
 
 interface SidebarSubItem {
@@ -57,6 +58,7 @@ const sidebarGroups: SidebarGroup[] = [
     title: 'Recouvrement',
     icon: FileText,
     items: [
+      { name: 'Fiche Débiteur 360°', icon: Users, path: '/client-360' },
       { name: 'Dossiers de recouvrement', icon: FileText, path: '/dossiers' },
       { name: 'Tâches du jour', icon: CheckSquare, path: '/relances', tab: 'tasks' },
       { name: 'Relances', icon: RefreshCw, path: '/relances' },
@@ -192,6 +194,7 @@ export default function AppSidebar() {
     return group.items.some((item) => isSubItemActive(item));
   };
 
+  const { theme, resolvedTheme, setTheme, toggleTheme } = useTheme();
   const displayName = (user?.user_metadata as { full_name?: string } | undefined)?.full_name || user?.email || 'Utilisateur';
   const initial = (displayName[0] || 'U').toUpperCase();
 
@@ -204,9 +207,19 @@ export default function AppSidebar() {
             <div className="font-serif-display text-2xl text-white tracking-tight">RecovAI</div>
           </div>
         </Link>
-        <div className="mt-2 flex items-center gap-2 px-2 py-1 bg-white/5 rounded-lg border border-white/10">
-          <ShieldCheck size={14} className="text-gold" />
-          <span className="text-[10px] uppercase font-black tracking-widest text-white/60">Admin Portal</span>
+        <div className="mt-2 flex items-center justify-between gap-2 px-2 py-1.5 bg-white/5 rounded-lg border border-white/10">
+          <div className="flex items-center gap-1.5">
+            <ShieldCheck size={14} className="text-gold" />
+            <span className="text-[10px] uppercase font-black tracking-widest text-white/60">Admin Portal</span>
+          </div>
+          {/* Quick theme indicator toggle */}
+          <button
+            onClick={toggleTheme}
+            title={`Basculer le thème (Actuel: ${resolvedTheme === 'dark' ? 'Sombre' : 'Clair'})`}
+            className="p-1 rounded-md hover:bg-white/10 text-white/70 hover:text-white transition-colors"
+          >
+            {resolvedTheme === 'dark' ? <Moon size={13} className="text-amber-400" /> : <Sun size={13} className="text-amber-300" />}
+          </button>
         </div>
       </div>
 
@@ -290,8 +303,45 @@ export default function AppSidebar() {
         })}
       </div>
 
-      <div className="p-4 border-t border-white/5 shrink-0">
-        <div className="flex items-center gap-3 px-3 py-3 bg-white/5 rounded-2xl mb-3">
+      <div className="p-4 border-t border-white/5 shrink-0 space-y-3">
+        {/* Theme mode switcher */}
+        <div className="bg-white/5 p-1 rounded-xl flex items-center justify-between text-xs">
+          <button
+            onClick={() => setTheme('light')}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg font-medium transition-all",
+              theme === 'light' ? "bg-white text-charcoal shadow-sm font-bold" : "text-white/60 hover:text-white"
+            )}
+            title="Thème Clair"
+          >
+            <Sun size={13} className={theme === 'light' ? 'text-amber-500' : ''} />
+            <span className="text-[11px]">Clair</span>
+          </button>
+          <button
+            onClick={() => setTheme('dark')}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg font-medium transition-all",
+              theme === 'dark' ? "bg-white/20 text-white shadow-sm font-bold" : "text-white/60 hover:text-white"
+            )}
+            title="Thème Sombre"
+          >
+            <Moon size={13} className={theme === 'dark' ? 'text-amber-400' : ''} />
+            <span className="text-[11px]">Sombre</span>
+          </button>
+          <button
+            onClick={() => setTheme('system')}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg font-medium transition-all",
+              theme === 'system' ? "bg-white/20 text-white shadow-sm font-bold" : "text-white/60 hover:text-white"
+            )}
+            title="Thème Système (Auto)"
+          >
+            <Monitor size={13} />
+            <span className="text-[11px]">Auto</span>
+          </button>
+        </div>
+
+        <div className="flex items-center gap-3 px-3 py-2.5 bg-white/5 rounded-2xl">
           <div className="w-8 h-8 rounded-full bg-sky/20 flex items-center justify-center text-sky font-bold text-xs shrink-0">{initial}</div>
           <div className="flex flex-col min-w-0">
             <span className="text-xs font-bold truncate">{displayName}</span>
@@ -299,7 +349,7 @@ export default function AppSidebar() {
           </div>
         </div>
 
-        <button onClick={handleSignOut} className="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-xs font-semibold text-red-450 hover:bg-red-400/10 transition-all cursor-pointer">
+        <button onClick={handleSignOut} className="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-xs font-semibold text-red-400 hover:bg-red-400/10 transition-all cursor-pointer">
           <LogOut size={16} />
           Déconnexion
         </button>
