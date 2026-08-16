@@ -179,7 +179,7 @@ export default function Microfinance() {
       clientName: currentCase.clientName,
       amount: amt,
       paymentMethod,
-      receivedBy: 'Caisse RecovTN (Démo)',
+      receivedBy: 'Caisse RecovAI (Démo)',
       receivedAt: new Date().toISOString(),
       status: 'confirmed',
       receiptNumber: receiptNum

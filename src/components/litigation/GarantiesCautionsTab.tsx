@@ -106,7 +106,7 @@ export default function GarantiesCautionsTab({ onRefreshAll, userEmail }: Garant
     }
 
     LitigationStore.logAction(
-      userEmail || 'user@recovtn.com', 
+      userEmail || 'user@recovai.com', 
       'Enregistrement garantie', 
       `Assujettissement d'une garantie de type "${COLLATERAL_TYPES[colType]}" valued at ${parseFloat(colVal).toLocaleString()} TND pour ${caseId}`
     );
@@ -151,7 +151,7 @@ export default function GarantiesCautionsTab({ onRefreshAll, userEmail }: Garant
     }
 
     LitigationStore.logAction(
-      userEmail || 'user@recovtn.com', 
+      userEmail || 'user@recovai.com', 
       'Enregistrement caution', 
       `Cautionnement solidaire de ${guaName} enregistré (${parseFloat(guaAmt).toLocaleString()} TND)`
     );
@@ -179,12 +179,12 @@ export default function GarantiesCautionsTab({ onRefreshAll, userEmail }: Garant
     if (currentStatus === 'active' || currentStatus === 'under_review') {
       list[idx].status = 'seizure_started';
       list[idx].seizure_started_at = new Date().toISOString().slice(0, 10);
-      LitigationStore.logAction(userEmail || 'user@recovtn.com', 'Saisie de garantie', `Signification du commandement aux fins de saisie immobilière/mobilière pour ${selectedCol.id}`);
+      LitigationStore.logAction(userEmail || 'user@recovai.com', 'Saisie de garantie', `Signification du commandement aux fins de saisie immobilière/mobilière pour ${selectedCol.id}`);
     } 
     else if (currentStatus === 'seizure_started') {
       list[idx].status = 'seized';
       list[idx].seized_at = new Date().toISOString().slice(0, 10);
-      LitigationStore.logAction(userEmail || 'user@recovtn.com', 'Saisie de garantie', `PV de saisie conservatoire physique par huissier scellant l'actif ${selectedCol.id}`);
+      LitigationStore.logAction(userEmail || 'user@recovai.com', 'Saisie de garantie', `PV de saisie conservatoire physique par huissier scellant l'actif ${selectedCol.id}`);
     } 
     else if (currentStatus === 'seized') {
       const realSaleAmt = parseFloat(saleAmount);
@@ -206,7 +206,7 @@ export default function GarantiesCautionsTab({ onRefreshAll, userEmail }: Garant
           LitigationStore.saveLegalCases(legalCasesList);
         }
         
-        LitigationStore.logAction(userEmail || 'user@recovtn.com', 'Vente forcée de garantie', `Réalisation aux enchères de ${selectedCol.id} : adjudication prononcée pour ${realSaleAmt.toLocaleString()} TND créditée au solde restant.`);
+        LitigationStore.logAction(userEmail || 'user@recovai.com', 'Vente forcée de garantie', `Réalisation aux enchères de ${selectedCol.id} : adjudication prononcée pour ${realSaleAmt.toLocaleString()} TND créditée au solde restant.`);
       }
     }
 
@@ -232,11 +232,11 @@ export default function GarantiesCautionsTab({ onRefreshAll, userEmail }: Garant
     if (currentStatus === 'active') {
       list[idx].status = 'contacted';
       list[idx].contacted_at = new Date().toISOString().slice(0, 10);
-      LitigationStore.logAction(userEmail || 'user@recovtn.com', 'Mise en cause caution', `Envoi de la mise en demeure de payer par lettre recommandée AR à la caution solidaire ${selectedGua.full_name}`);
+      LitigationStore.logAction(userEmail || 'user@recovai.com', 'Mise en cause caution', `Envoi de la mise en demeure de payer par lettre recommandée AR à la caution solidaire ${selectedGua.full_name}`);
     } 
     else if (currentStatus === 'contacted') {
       list[idx].status = 'payment_requested';
-      LitigationStore.logAction(userEmail || 'user@recovtn.com', 'Commandement caution', `Assignation formelle devant la cour d'Amende commerciale visant la caution solidaire ${selectedGua.full_name}`);
+      LitigationStore.logAction(userEmail || 'user@recovai.com', 'Commandement caution', `Assignation formelle devant la cour d'Amende commerciale visant la caution solidaire ${selectedGua.full_name}`);
     }
 
     LitigationStore.saveGuarantors(list);

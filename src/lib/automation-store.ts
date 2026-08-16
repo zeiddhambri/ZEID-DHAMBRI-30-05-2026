@@ -1,5 +1,5 @@
 // automation-store.ts
-// Robust client-side persistent store for the Automation (Automatisation) module of RecovTN.
+// Robust client-side persistent store for the Automation (Automatisation) module of RecovAI.
 import { ReminderRule, EscalationRule, MessageTemplate, Workflow, ExecutionHistory } from '@/types/automation';
 
 const STORAGE_KEYS = {
@@ -230,7 +230,7 @@ const DEFAULT_MESSAGE_TEMPLATES: MessageTemplate[] = [
     name: 'SMS de Rappel Courtois Pré-Échéance',
     description: 'Rappel d\'échéance cordial sans insister sur le retard',
     channel: 'sms',
-    content: 'Bonjour {client_name}, nous vous rappelons que votre prochaine échéance RecovTN de {montant} TND arrive le {date_echeance}. Nous vous remercions pour votre fidélité.',
+    content: 'Bonjour {client_name}, nous vous rappelons que votre prochaine échéance RecovAI de {montant} TND arrive le {date_echeance}. Nous vous remercions pour votre fidélité.',
     placeholders: ['client_name', 'montant', 'date_echeance'],
     category: 'standard_reminder',
     language: 'fr',
@@ -243,7 +243,7 @@ const DEFAULT_MESSAGE_TEMPLATES: MessageTemplate[] = [
     description: 'Email formel notifiant le retard d\'une échéance',
     channel: 'email',
     subject: 'Régularisation urgente de votre échéance de crédit',
-    content: 'Bonjour {client_name},\n\nSauf erreur de notre part, votre règlement de {montant} TND adossé au dossier {dossier_id} n\'a pas été réceptionné le {date_echeance}.\n\nNous vous prions de régulariser cette créance immédiatement afin d\'éviter d\'éventuels frais de pénalité additionnels.\n\nCordialement,\nService Recouvrement RecovTN',
+    content: 'Bonjour {client_name},\n\nSauf erreur de notre part, votre règlement de {montant} TND adossé au dossier {dossier_id} n\'a pas été réceptionné le {date_echeance}.\n\nNous vous prions de régulariser cette créance immédiatement afin d\'éviter d\'éventuels frais de pénalité additionnels.\n\nCordialement,\nService Recouvrement RecovAI',
     placeholders: ['client_name', 'montant', 'dossier_id', 'date_echeance'],
     category: 'alert',
     language: 'fr',
@@ -255,7 +255,7 @@ const DEFAULT_MESSAGE_TEMPLATES: MessageTemplate[] = [
     name: 'WhatsApp Alerte Retard / Risque Élevé',
     description: 'Alerte forte avertissant du risque juridique ou pré-contentieux',
     channel: 'whatsapp',
-    content: '⚠️ *Alerte RecovTN* - {client_name}.\n\nVotre retard accumulé s\'élève à *{montant} TND* sur votre compte. Sans action immédiate de votre part, votre dossier sera transmis au service Pré-Contentieux judiciaire sous 48 heures.\n\nContactez votre conseiller RecovTN de toute urgence.',
+    content: '⚠️ *Alerte RecovAI* - {client_name}.\n\nVotre retard accumulé s\'élève à *{montant} TND* sur votre compte. Sans action immédiate de votre part, votre dossier sera transmis au service Pré-Contentieux judiciaire sous 48 heures.\n\nContactez votre conseiller RecovAI de toute urgence.',
     placeholders: ['client_name', 'montant'],
     category: 'pre_litigation',
     language: 'fr',
@@ -268,7 +268,7 @@ const DEFAULT_MESSAGE_TEMPLATES: MessageTemplate[] = [
     description: 'Email de mise en demeure formel avant procédure de saisie',
     channel: 'email',
     subject: 'MISE EN DEMEURE FORMELLE - PROCEDURE CONTENTIEUSE',
-    content: 'MISE EN DEMEURE OFFICIELLE\n\nÀ l\'attention de la direction de {client_name},\n\nMises en demeure antérieures étant restées vaines, votre créance s\'élève à ce jour à {montant} TND.\n\nPar la présente, RecovTN vous met en demeure formelle de régler ce montant sous 5 jours ouvrés.\n\nÀ défaut, nous entamerons d\'office la dénonciation de vos contrats judiciaires et le cas échéant, la saisie conservatoire ou la réalisation de vos garanties.\n\nFait pour servir et valoir ce que de droit.',
+    content: 'MISE EN DEMEURE OFFICIELLE\n\nÀ l\'attention de la direction de {client_name},\n\nMises en demeure antérieures étant restées vaines, votre créance s\'élève à ce jour à {montant} TND.\n\nPar la présente, RecovAI vous met en demeure formelle de régler ce montant sous 5 jours ouvrés.\n\nÀ défaut, nous entamerons d\'office la dénonciation de vos contrats judiciaires et le cas échéant, la saisie conservatoire ou la réalisation de vos garanties.\n\nFait pour servir et valoir ce que de droit.',
     placeholders: ['client_name', 'montant'],
     category: 'pre_litigation',
     language: 'fr',
@@ -280,7 +280,7 @@ const DEFAULT_MESSAGE_TEMPLATES: MessageTemplate[] = [
     name: 'Rappel SMS de Courtoisie en Arabe',
     description: 'Template de relance courtoise rédigé en arabe',
     channel: 'sms',
-    content: 'مرحباً {client_name}، نذكركم بأن موعد سداد دفعتكم القادمة بقيمة {montant} د.ت هو {date_echeance}. نشكركم على ثقتكم وتواصلكم معنا. RecovTN',
+    content: 'مرحباً {client_name}، نذكركم بأن موعد سداد دفعتكم القادمة بقيمة {montant} د.ت هو {date_echeance}. نشكركم على ثقتكم وتواصلكم معنا. RecovAI',
     placeholders: ['client_name', 'montant', 'date_echeance'],
     category: 'standard_reminder',
     language: 'ar',

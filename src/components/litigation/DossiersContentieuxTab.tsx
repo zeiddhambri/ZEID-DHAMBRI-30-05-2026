@@ -54,13 +54,13 @@ export default function DossiersContentieuxTab({ onRefreshAll, userEmail }: Doss
     if (modalAction === 'status' && newStatus) {
       list[index].status = newStatus as any;
       list[index].last_action_at = new Date().toISOString().slice(0, 10);
-      LitigationStore.logAction(userEmail || 'user@recovtn.com', 'Mise à jour statut', `Statut du dossier ${selectedCase.id} modifié vers ${newStatus}`);
+      LitigationStore.logAction(userEmail || 'user@recovai.com', 'Mise à jour statut', `Statut du dossier ${selectedCase.id} modifié vers ${newStatus}`);
     } 
     else if (modalAction === 'lawyer' && newLawyer) {
       list[index].external_lawyer_id = newLawyer;
       list[index].last_action_at = new Date().toISOString().slice(0, 10);
       LitigationStore.saveLegalCases(list);
-      LitigationStore.logAction(userEmail || 'user@recovtn.com', 'Affectation avocat', `Avocat du dossier ${selectedCase.id} modifié vers ${newLawyer}`);
+      LitigationStore.logAction(userEmail || 'user@recovai.com', 'Affectation avocat', `Avocat du dossier ${selectedCase.id} modifié vers ${newLawyer}`);
     }
 
     LitigationStore.saveLegalCases(list);

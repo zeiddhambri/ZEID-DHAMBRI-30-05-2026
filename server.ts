@@ -635,7 +635,7 @@ async function startServer() {
       const apiKey = process.env.GEMINI_API_KEY;
 
       if (!apiKey || apiKey === 'MY_GEMINI_API_KEY') {
-        const mockPromptResult = `### 🌐 Rapport d'Audit Cognitif Global - RecovTN
+        const mockPromptResult = `### 🌐 Rapport d'Audit Cognitif Global - RecovAI
 
 #### 1. Synthèse Posture Risques Clinique
 L'encours global consolidé sous gestion s'élève à **${(summary.portfolio?.outstanding || 4250000).toLocaleString('fr-FR')} TND**, dont **${(summary.portfolio?.overdue || 1211250).toLocaleString('fr-FR')} TND** de créances caractérisées en souffrance (taux d'arriérés brut global de **${summary.portfolio?.overdueRate || '28.5'}%**). 
@@ -653,7 +653,7 @@ Nous observons **${summary.portfolio?.criticalExposures || 6} expositions critiq
 *   **Amiable (0-7 Jours)** : Dégressivité automatique des offres de règlement rééchelonné pour les portefeuilles Microfinance ayant dépassé le PAR 30. Lancer des sommations interpellatives pour les débiteurs de Leasing.
 *   **Contentieux (7-30 Jours)** : Lancement forcé de la vente publique pour le dossier *Ahmed Ben Salem* (LIT-2024-0002). Assigner d'urgence Global Tech en référé conservatoire de saisie bancaire.
 
-*Note de réserve réglementaire : Cette synthèse analytique est générée par l'intelligence artificielle IA-RecovTN. Toute procédure contraignante ou restructuration d'encours doit être approuvée par le Comité d'Audit & Risques de l'institution concernée.*`;
+*Note de réserve réglementaire : Cette synthèse analytique est générée par l'intelligence artificielle IA-RecovAI. Toute procédure contraignante ou restructuration d'encours doit être approuvée par le Comité d'Audit & Risques de l'institution concernée.*`;
 
         return res.json({ result: mockPromptResult });
       }
@@ -667,7 +667,7 @@ Nous observons **${summary.portfolio?.criticalExposures || 6} expositions critiq
         }
       });
 
-      const systemPrompt = `Vous êtes le moteur d'intelligence de la plateforme RecovTN, conseiller IA expert en restructuration bancaire pour les portefeuilles de Microfinance, Factoring (Affacturage) et Leasing (Crédit-Bail) en Tunisie.
+      const systemPrompt = `Vous êtes le moteur d'intelligence de la plateforme RecovAI, conseiller IA expert en restructuration bancaire pour les portefeuilles de Microfinance, Factoring (Affacturage) et Leasing (Crédit-Bail) en Tunisie.
 Analysez rigoureusement le payload du Tableau de Bord Global consolidation (KPIs, filtres, etc) fourni.
 Donnez des recommandations tactiques transverses, claires et exploitables en français professionnel Markdown.
 Structure de la réponse exigée :
@@ -820,7 +820,7 @@ Sur un total de **${summary.totalCases || 186} dossiers amiables**, le volume gl
 *   **Canal Téléphonique / SMS (0-48h)** : Déclencher d'urgence le workflow "Promesses Rompues" qui émet un avertissement automatique par SMS de mise en demeure amiable pré-contentieuse.
 *   **Visites de masse (Sous 15 Jours)** : Prioriser les descentes physiques sur les dossiers de Microfinance de la zone de Sfax El Jadida où le taux de retour est le plus dégradé.
 
-*Note de réserve technique : Cette analyse est formulée par le conseiller d'automatisation cognitive RecovTN. Tout rééchelonnement de créances commerciales doit faire l'objet d'un avenant écrit signé et tamponné.*`;
+*Note de réserve technique : Cette analyse est formulée par le conseiller d'automatisation cognitive RecovAI. Tout rééchelonnement de créances commerciales doit faire l'objet d'un avenant écrit signé et tamponné.*`;
 
         return res.json({ result: mockPromptResult });
       }
@@ -834,7 +834,7 @@ Sur un total de **${summary.totalCases || 186} dossiers amiables**, le volume gl
         }
       });
 
-      const systemPrompt = `Vous êtes le module d'intelligence RecovTN spécialisé en recouvrement amiable (Microfinance, Affacturage, Leasing).
+      const systemPrompt = `Vous êtes le module d'intelligence RecovAI spécialisé en recouvrement amiable (Microfinance, Affacturage, Leasing).
 Analysez rigoureusement les données fournies pour proposer des stratégies d'optimisation des relances, du mailing d'impact, et de l'ordonnancement des visites de terrain en Tunisie.
 Votre rapport doit respecter scrupuleusement la structure Markdown suivante:
 1. Constat Général des Relances et Apurement Amiable
@@ -1389,7 +1389,7 @@ On dénombre **${summary.overdueActionsCount || 3} actions critiques en retard**
         }
       });
 
-      const systemPrompt = `Vous êtes un analyste expert du recouvrement contentieux et des procédures judiciaires bancaires en Tunisie (RecovTN).
+      const systemPrompt = `Vous êtes un analyste expert du recouvrement contentieux et des procédures judiciaires bancaires en Tunisie (RecovAI).
 Analysez avec rigueur le payload fourni (indicateurs KPIs, données détaillées des affaires contentieuses et tendances).
 Votre analyse doit impérativement respecter les règles strictes suivantes:
 1. Ne JAMAIS inventer d'informations. Utilisez strictement les données fournies.
@@ -1493,7 +1493,7 @@ Le **PAR 30 moyen consolidé** s'établit à **${(summary.par30Weighted || 0).to
 - **15 Jours** : Lancer des procédures d'injonction de payer pour les créances nues de Factoring de plus de 90 jours (ex: Global Tech).
 - **30 Jours** : Procéder à des inspections physiques des matériels financés en Leasing pour s'assurer de leur valeur de revente sur le marché de l'occasion.
 
-*Note de réserve réglementaire : Cette recommandation automatique est générée par le moteur cognitif RecovTN sur la base des normes macro-prudentielles de la Banque Centrale de Tunisie. Elle doit être validée par le comité des risques bancaires.*`;
+*Note de réserve réglementaire : Cette recommandation automatique est générée par le moteur cognitif RecovAI sur la base des normes macro-prudentielles de la Banque Centrale de Tunisie. Elle doit être validée par le comité des risques bancaires.*`;
         return res.json({ result: fallback });
       }
 
@@ -1755,7 +1755,7 @@ Votre analyse doit impérativement respecter les règles strictes suivantes:
             ] : []
           },
           audit_trail: {
-            logique_decisionnelle: `Validation automatique par le Core Engine d'Octroi RecovTN. Calibrage sectoriel ${mType.toUpperCase()}.`,
+            logique_decisionnelle: `Validation automatique par le Core Engine d'Octroi RecovAI. Calibrage sectoriel ${mType.toUpperCase()}.`,
             hypotheses_appliquees: [
               "Non-dégradation des hypothèses macro-économiques tunisiennes de référence.",
               "Saisie et valorisation légale des sûretés de premier rang."

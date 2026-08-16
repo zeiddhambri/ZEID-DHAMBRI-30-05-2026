@@ -83,7 +83,7 @@ export default function DocumentsJuridiquesTab({ onRefreshAll, userEmail }: Docu
       required: true,
       verified: false,
       verification_status: 'uploaded',
-      uploaded_by: userEmail || "Juriste RecovTN",
+      uploaded_by: userEmail || "Juriste RecovAI",
       uploaded_at: new Date().toISOString().slice(0, 10),
       notes: notes
     };
@@ -93,7 +93,7 @@ export default function DocumentsJuridiquesTab({ onRefreshAll, userEmail }: Docu
     setDocuments(list);
 
     LitigationStore.logAction(
-      userEmail || 'user@recovtn.com', 
+      userEmail || 'user@recovai.com', 
       'Dépôt document', 
       `Téléchargement du document "${DOC_TYPES[docType]}" (${docName}) pour le cas ${caseId}`
     );
@@ -137,7 +137,7 @@ export default function DocumentsJuridiquesTab({ onRefreshAll, userEmail }: Docu
     setDocuments(list);
 
     LitigationStore.logAction(
-      userEmail || 'user@recovtn.com', 
+      userEmail || 'user@recovai.com', 
       'Audit de conformité', 
       `Document ${selectedDoc.id} vérifié : résultat ${verifStatus}`
     );
@@ -154,7 +154,7 @@ export default function DocumentsJuridiquesTab({ onRefreshAll, userEmail }: Docu
     const list = documents.filter(d => d.id !== id);
     LitigationStore.saveLegalDocuments(list);
     setDocuments(list);
-    LitigationStore.logAction(userEmail || 'user@recovtn.com', 'Suppression document', `Destruction physique du document ID ${id}`);
+    LitigationStore.logAction(userEmail || 'user@recovai.com', 'Suppression document', `Destruction physique du document ID ${id}`);
     onRefreshAll();
   };
 

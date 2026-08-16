@@ -1,5 +1,5 @@
 // Mock data for the Analytics page
-// Realistic data shaped for a Tunisian banking recovery SaaS (RecovTN)
+// Realistic data shaped for a Tunisian banking recovery SaaS (RecovAI)
 
 export const AGENTS = ['Ahmed B.', 'Sami K.', 'Leila M.', 'Nadia T.', 'Karim S.'] as const;
 export type Agent = typeof AGENTS[number];

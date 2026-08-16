@@ -52,8 +52,8 @@ export default function Rapports() {
 
       // In-line mockup lookup for Scheduled items
       setSchedules([
-        { id: 'sch-01', report_definition_id: 'rep-01', name: 'Envoi mensuel Direction Risques', frequency: 'monthly', recipients: ['direction.risques@recovtn.tn'], format: 'pdf', active: true, next_run_at: '2026-06-01T00:00:00Z' },
-        { id: 'sch-02', report_definition_id: 'rep-03', name: 'Hebdo Performance Recouvreurs', frequency: 'weekly', recipients: ['superviseurs@recovtn.tn'], format: 'excel', active: true, next_run_at: '2026-06-01T08:00:00Z' }
+        { id: 'sch-01', report_definition_id: 'rep-01', name: 'Envoi mensuel Direction Risques', frequency: 'monthly', recipients: ['direction.risques@recovai.tn'], format: 'pdf', active: true, next_run_at: '2026-06-01T00:00:00Z' },
+        { id: 'sch-02', report_definition_id: 'rep-03', name: 'Hebdo Performance Recouvreurs', frequency: 'weekly', recipients: ['superviseurs@recovai.tn'], format: 'excel', active: true, next_run_at: '2026-06-01T08:00:00Z' }
       ]);
     } catch (err: any) {
       toast({
@@ -76,7 +76,7 @@ export default function Rapports() {
       const response = await fetch(`/api/pilotage/rapports/${defId}/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ format: 'pdf', userEmail: 'ahmed.b@recovtn.tn' })
+        body: JSON.stringify({ format: 'pdf', userEmail: 'ahmed.b@recovai.tn' })
       });
 
       if (!response.ok) throw new Error("Impossible de générer le rapport.");
@@ -316,7 +316,7 @@ export default function Rapports() {
                   <div className="space-y-1">
                     <label className="font-semibold text-gray-700">Destinataires (Séparés par une virgule)</label>
                     <textarea
-                      placeholder="e.g. risques@recovtn.tn, audit@recovtn.tn"
+                      placeholder="e.g. risques@recovai.tn, audit@recovai.tn"
                       value={scheduleRecipients}
                       onChange={(e) => setScheduleRecipients(e.target.value)}
                       rows={2}

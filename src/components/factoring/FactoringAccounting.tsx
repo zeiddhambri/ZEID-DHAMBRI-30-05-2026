@@ -32,7 +32,7 @@ export default function FactoringAccounting({ entries }: FactoringAccountingProp
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `SAGE_FEC_RECOVTN_${new Date().toISOString().split('T')[0]}.txt`;
+    link.download = `SAGE_FEC_RECOVAI_${new Date().toISOString().split('T')[0]}.txt`;
     link.click();
     URL.revokeObjectURL(url);
 

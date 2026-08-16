@@ -335,7 +335,7 @@ export const leasingContracts: LeasingContract[] = [
   {
     id: 'LEAS-2024-0001',
     lessee: buildLessee('D-145', 'SOCIETE ALPHA SARL', '12 Rue de la République', 'Tunis', '1000', { siren: '0123456789', contact: 'M. Slim Bargaoui', email: 'contact@alpha-sarl.tn', phone: '+216 71 222 333' }),
-    lessor: 'BANQUE RECOVTN',
+    lessor: 'BANQUE RECOVAI',
     status: 'active',
     startDate: '2023-06-01', endDate: '2027-06-01', firstDueDate: '2023-07-01',
     paymentFrequency: 'monthly',
@@ -353,7 +353,7 @@ export const leasingContracts: LeasingContract[] = [
   {
     id: 'LEAS-2024-0002',
     lessee: buildLessee('D-202', 'BIO PHARMA TUNISIE', '7 Rue Ibn Sina', 'Sfax', '3000', { siren: '5544332211', contact: 'Dr. Hela Mansouri', email: 'h.mansouri@biopharma.tn' }),
-    lessor: 'BANQUE RECOVTN',
+    lessor: 'BANQUE RECOVAI',
     status: 'active',
     startDate: '2023-01-15', endDate: '2028-01-15', firstDueDate: '2023-02-15',
     paymentFrequency: 'monthly',
@@ -371,7 +371,7 @@ export const leasingContracts: LeasingContract[] = [
   {
     id: 'LEAS-2024-0003',
     lessee: buildLessee('D-318', 'GLOBAL TECH TUNISIE', '15 Rue du Lac', 'Tunis', '1053', { siren: '0987654321', contact: 'Mme Nadia Trabelsi', email: 'nadia@globaltech.tn' }),
-    lessor: 'BANQUE RECOVTN',
+    lessor: 'BANQUE RECOVAI',
     status: 'active',
     startDate: '2024-01-10', endDate: '2027-01-10', firstDueDate: '2024-02-10',
     paymentFrequency: 'monthly',
@@ -389,7 +389,7 @@ export const leasingContracts: LeasingContract[] = [
   {
     id: 'LEAS-2024-0004',
     lessee: buildLessee('D-510', 'CARTHAGE LOGISTICS', '4 Avenue de Carthage', 'Tunis', '2025', { siren: '4433221100', contact: 'M. Imed Sfar', email: 'i.sfar@carthage-log.tn' }),
-    lessor: 'BANQUE RECOVTN',
+    lessor: 'BANQUE RECOVAI',
     status: 'active',
     startDate: '2022-09-01', endDate: '2027-09-01', firstDueDate: '2022-10-01',
     paymentFrequency: 'monthly',
@@ -409,7 +409,7 @@ export const leasingContracts: LeasingContract[] = [
   {
     id: 'LEAS-2024-0005',
     lessee: buildLessee('D-422', 'KARIM ENTERPRISES', '8 Rue Ibn Khaldoun', 'Sfax', '3000', { siren: '5566778899', contact: 'M. Karim Jelassi' }),
-    lessor: 'BANQUE RECOVTN',
+    lessor: 'BANQUE RECOVAI',
     status: 'late',
     startDate: '2023-04-01', endDate: '2026-04-01', firstDueDate: '2023-05-01',
     paymentFrequency: 'monthly',
@@ -430,7 +430,7 @@ export const leasingContracts: LeasingContract[] = [
   {
     id: 'LEAS-2024-0006',
     lessee: buildLessee('D-601', 'ATELIER MOSAIQUE', '22 Avenue de la Liberté', 'Sousse', '4000', { contact: 'Mme Sonia Khelifi' }),
-    lessor: 'BANQUE RECOVTN',
+    lessor: 'BANQUE RECOVAI',
     status: 'late',
     startDate: '2023-09-01', endDate: '2026-09-01', firstDueDate: '2023-10-01',
     paymentFrequency: 'monthly',
@@ -455,7 +455,7 @@ export const leasingContracts: LeasingContract[] = [
   {
     id: 'LEAS-2024-0007',
     lessee: buildLessee('D-712', 'TRANSPORT EL FATEH', '11 Route de Sousse', 'Monastir', '5000', { contact: 'M. Mohamed Lahbib' }),
-    lessor: 'BANQUE RECOVTN',
+    lessor: 'BANQUE RECOVAI',
     status: 'recovery',
     startDate: '2022-03-01', endDate: '2026-03-01', firstDueDate: '2022-04-01',
     paymentFrequency: 'monthly',
@@ -484,7 +484,7 @@ export const leasingContracts: LeasingContract[] = [
   {
     id: 'LEAS-2024-0008',
     lessee: buildLessee('D-820', 'CONSTRUCTION HEDI', '5 Rue de l\'Industrie', 'Bizerte', '7000', { siren: '7788990011' }),
-    lessor: 'BANQUE RECOVTN',
+    lessor: 'BANQUE RECOVAI',
     status: 'recovery',
     startDate: '2022-11-01', endDate: '2027-11-01', firstDueDate: '2022-12-01',
     paymentFrequency: 'monthly',
@@ -508,7 +508,7 @@ export const leasingContracts: LeasingContract[] = [
   {
     id: 'LEAS-2024-0009',
     lessee: buildLessee('D-901', 'RESTAURANT SAMARA', '18 Rue Mokhtar Attia', 'Tunis', '1002'),
-    lessor: 'BANQUE RECOVTN',
+    lessor: 'BANQUE RECOVAI',
     status: 'early_termination',
     startDate: '2022-06-01', endDate: '2026-06-01', firstDueDate: '2022-07-01',
     paymentFrequency: 'monthly',
@@ -543,7 +543,7 @@ export const leasingContracts: LeasingContract[] = [
   {
     id: 'LEAS-2024-0010',
     lessee: buildLessee('D-201', 'BEN SALEM AHMED', '4 Avenue Habib Bourguiba', 'Sousse', '4000', { email: 'ahmed.bensalem@gmail.com' }),
-    lessor: 'BANQUE RECOVTN',
+    lessor: 'BANQUE RECOVAI',
     status: 'litigation',
     startDate: '2021-08-01', endDate: '2025-08-01', firstDueDate: '2021-09-01',
     paymentFrequency: 'monthly',
@@ -565,7 +565,7 @@ export const leasingContracts: LeasingContract[] = [
   {
     id: 'LEAS-2024-0011',
     lessee: buildLessee('D-098', 'STAR LOGISTIQUE', '20 Rue de Marseille', 'Tunis', '1002', { siren: '6677889900' }),
-    lessor: 'BANQUE RECOVTN',
+    lessor: 'BANQUE RECOVAI',
     status: 'litigation',
     startDate: '2020-03-01', endDate: '2025-03-01', firstDueDate: '2020-04-01',
     paymentFrequency: 'monthly',
@@ -586,7 +586,7 @@ export const leasingContracts: LeasingContract[] = [
   {
     id: 'LEAS-2023-0012',
     lessee: buildLessee('D-501', 'MEDITERANEE INVEST', '3 Avenue de Carthage', 'Tunis', '1001', { siren: '1122334455' }),
-    lessor: 'BANQUE RECOVTN',
+    lessor: 'BANQUE RECOVAI',
     status: 'closed_paid',
     startDate: '2020-01-01', endDate: '2024-01-01', firstDueDate: '2020-02-01',
     paymentFrequency: 'monthly',

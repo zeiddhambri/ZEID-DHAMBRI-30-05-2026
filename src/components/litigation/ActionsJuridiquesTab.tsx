@@ -94,7 +94,7 @@ export default function ActionsJuridiquesTab({ onRefreshAll, userEmail }: Action
     
     // Log audit log
     LitigationStore.logAction(
-      userEmail || 'user@recovtn.com', 
+      userEmail || 'user@recovai.com', 
       'Création d\'action', 
       `Planification d'une action "${ACTION_TYPES[actionType]}" pour le dossier ${caseId}`
     );
@@ -130,7 +130,7 @@ export default function ActionsJuridiquesTab({ onRefreshAll, userEmail }: Action
     setActions(list);
 
     LitigationStore.logAction(
-      userEmail || 'user@recovtn.com', 
+      userEmail || 'user@recovai.com', 
       'Action mise à jour', 
       `Changement d'état pour l'action ${selectedAction.id} : ${editStatus}`
     );

@@ -40,7 +40,7 @@ export default function Navbar() {
           <Link to="/" className="flex items-center gap-2">
             <span className="text-crimson text-2xl">✦</span>
             <div className="leading-none">
-              <div className="font-serif-display text-2xl text-charcoal tracking-tight">RecovTN</div>
+              <div className="font-serif-display text-2xl text-charcoal tracking-tight">RecovAI</div>
               
             </div>
           </Link>

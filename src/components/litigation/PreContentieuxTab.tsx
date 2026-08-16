@@ -58,17 +58,17 @@ export default function PreContentieuxTab({ onRefreshAll, userEmail }: PreConten
       if (deadlineDate) {
         updatedCase.final_deadline_date = deadlineDate;
       }
-      LitigationStore.logAction(userEmail || 'user@recovtn.com', 'Mise en demeure', `Envoi d'une mise en demeure au client ${updatedCase.client_name}`);
+      LitigationStore.logAction(userEmail || 'user@recovai.com', 'Mise en demeure', `Envoi d'une mise en demeure au client ${updatedCase.client_name}`);
     } 
     else if (actionType === 'response') {
       updatedCase.client_response = clientResponse;
       updatedCase.status = 'waiting_client_response';
-      LitigationStore.logAction(userEmail || 'user@recovtn.com', 'Réponse client', `Enregistrement de la réponse client pour ${updatedCase.client_name}`);
+      LitigationStore.logAction(userEmail || 'user@recovai.com', 'Réponse client', `Enregistrement de la réponse client pour ${updatedCase.client_name}`);
     } 
     else if (actionType === 'reject') {
       updatedCase.status = 'rejected';
       updatedCase.closed_at = new Date().toISOString().slice(0, 10);
-      LitigationStore.logAction(userEmail || 'user@recovtn.com', 'Rejet pré-contentieux', `Dossier de pré-contentieux rejeté pour ${updatedCase.client_name}`);
+      LitigationStore.logAction(userEmail || 'user@recovai.com', 'Rejet pré-contentieux', `Dossier de pré-contentieux rejeté pour ${updatedCase.client_name}`);
     } 
     else if (actionType === 'approve') {
       // 1. Mark as approved for litigation
@@ -110,7 +110,7 @@ export default function PreContentieuxTab({ onRefreshAll, userEmail }: PreConten
       LitigationStore.saveLegalCases(legalCases);
       
       LitigationStore.logAction(
-        userEmail || 'user@recovtn.com', 
+        userEmail || 'user@recovai.com', 
         'Validation contentieux', 
         `Dossier ${updatedCase.client_name} approuvé pour transfert au tribunal. Création du dossier juridique ${newLegalCase.id}`
       );
@@ -155,7 +155,7 @@ export default function PreContentieuxTab({ onRefreshAll, userEmail }: PreConten
     newList.unshift(newItem);
     LitigationStore.savePreLitCases(newList);
     setCases(newList);
-    LitigationStore.logAction(userEmail || 'user@recovtn.com', 'Création Pré-contentieux', `Nouveau cas de pré-contentieux enregistré pour ${newClientName}`);
+    LitigationStore.logAction(userEmail || 'user@recovai.com', 'Création Pré-contentieux', `Nouveau cas de pré-contentieux enregistré pour ${newClientName}`);
     
     // reset
     setNewClientName('');

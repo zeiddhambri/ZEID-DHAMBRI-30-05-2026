@@ -227,7 +227,7 @@ const INITIAL_ACTIONS: CollectionAction[] = [
     id: 'act-2',
     collectionCaseId: 'case-2',
     actionType: 'sms_sent',
-    actorName: 'Système RecovTN',
+    actorName: 'Système RecovAI',
     actionDate: '2026-05-11T08:00:00Z',
     result: 'client_unreachable',
     comment: 'Notification automatique de mise en demeure envoyée au client.',

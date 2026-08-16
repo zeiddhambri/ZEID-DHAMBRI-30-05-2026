@@ -172,7 +172,7 @@ const safeFetch = async (url: RequestInfo | URL, options?: RequestInit): Promise
           ]
         },
         audit_trail: {
-          logique_decisionnelle: "Application du moteur Bâle III d'aide à la décision du crédit standardisé par RecovTN.",
+          logique_decisionnelle: "Application du moteur Bâle III d'aide à la décision du crédit standardisé par RecovAI.",
           hypotheses_appliquees: [
             "Stabilité résiduelle de l'activité du débiteur.",
             "Valorisation conservatrice à hauteur de 80% du bien immobilier coté."
@@ -323,7 +323,7 @@ const safeFetch = async (url: RequestInfo | URL, options?: RequestInit): Promise
           ]
         },
         audit_trail: {
-          logique_decisionnelle: "Calculatrice de dégradation prospective RecovTN conforme IFRS 9 directive BCT 2024.",
+          logique_decisionnelle: "Calculatrice de dégradation prospective RecovAI conforme IFRS 9 directive BCT 2024.",
           hypotheses_appliquees: [
             "Amortissement linéaire des flux futurs estimables.",
             "Taux de recouvrement historique sectoriel de 68% sur le collatéral."
@@ -364,7 +364,7 @@ const safeFetch = async (url: RequestInfo | URL, options?: RequestInit): Promise
             id: "dummy-user-id",
             aud: "authenticated",
             role: "authenticated",
-            email: "demo-agent@recovtn.tn",
+            email: "demo-agent@recovai.tn",
             email_confirmed_at: "2026-05-30T13:50:33Z",
             user_metadata: {
               full_name: "Agent de Recouvrement (Démo)"
@@ -383,14 +383,14 @@ const safeFetch = async (url: RequestInfo | URL, options?: RequestInit): Promise
                 id: "dummy-user-id",
                 aud: "authenticated",
                 role: "authenticated",
-                email: "demo-agent@recovtn.tn"
+                email: "demo-agent@recovai.tn"
               }
             },
             user: {
               id: "dummy-user-id",
               aud: "authenticated",
               role: "authenticated",
-              email: "demo-agent@recovtn.tn"
+              email: "demo-agent@recovai.tn"
             }
           }
         };
@@ -423,7 +423,7 @@ const safeFetch = async (url: RequestInfo | URL, options?: RequestInit): Promise
           id: "dummy-user-id",
           aud: "authenticated",
           role: "authenticated",
-          email: "demo-agent@recovtn.tn",
+          email: "demo-agent@recovai.tn",
           email_confirmed_at: "2026-05-30T13:50:33Z",
           user_metadata: {
             full_name: "Agent de Recouvrement (Démo)"

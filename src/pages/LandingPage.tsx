@@ -23,7 +23,7 @@ export default function LandingPage() {
               <div className="lg:col-span-7">
                 <span className="eyebrow mb-5 block">Demande de démo</span>
                 <h2 className="h-display">
-                  Découvrez RecovTN sur votre portefeuille — démo personnalisée sous 48h
+                  Découvrez RecovAI sur votre portefeuille — démo personnalisée sous 48h
                 </h2>
               </div>
               <div className="lg:col-span-5">

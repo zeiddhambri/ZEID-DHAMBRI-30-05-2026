@@ -351,7 +351,7 @@ export default function ModelesMessages() {
                   <span>09:41</span>
                   <div className="flex gap-1 items-center">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping inline-block" />
-                    <span>RecovTN Sim</span>
+                    <span>RecovAI Sim</span>
                   </div>
                 </div>
 
@@ -362,7 +362,7 @@ export default function ModelesMessages() {
                     // E-MAIL VIEW
                     <div className="bg-white rounded-xl shadow-md p-3 space-y-2 border text-[10px] w-full self-center">
                       <div className="border-b pb-1 text-[8px] text-slate-500 space-y-0.5 font-sans">
-                        <div><span className="font-extrabold text-navy">De :</span> recovtn@amenbank.com</div>
+                        <div><span className="font-extrabold text-navy">De :</span> recovai@amenbank.com</div>
                         <div><span className="font-extrabold text-navy">À :</span> contact@entreprise.tn</div>
                         <div><span className="font-extrabold text-navy">Objet :</span> {selectedTmpl.subject || 'Régularisation'}</div>
                       </div>
@@ -373,7 +373,7 @@ export default function ModelesMessages() {
                   ) : selectedTmpl.channel === 'whatsapp' ? (
                     // WHATSAPP VIEW
                     <div className="bg-emerald-100 rounded-2xl shadow p-3 text-[10px] max-w-[90%] self-end relative border-l-4 border-emerald-500">
-                      <span className="font-black text-emerald-800 text-[8px] block mb-1 uppercase">★ RecovTN WhatsApp d\'office</span>
+                      <span className="font-black text-emerald-800 text-[8px] block mb-1 uppercase">★ RecovAI WhatsApp d\'office</span>
                       <p className="whitespace-pre-line leading-relaxed text-slate-800">
                         {compiledPreview}
                       </p>

@@ -93,7 +93,7 @@ export default function FactoringRequests({ invoices, debtors, requests, onSubmi
     const newReq: FactoringRequest = {
       id: 'req-' + Math.floor(Math.random() * 10000),
       requestNumber: uniqueRequestNum,
-      companyName: 'RecovTN Cédant Démo',
+      companyName: 'RecovAI Cédant Démo',
       debtorNames: Array.from(new Set(chosenInvoices.map(i => i.debtorName))),
       totalInvoiceAmount: totalAmount,
       requestedAdvanceRate: advanceRate,
@@ -308,7 +308,7 @@ export default function FactoringRequests({ invoices, debtors, requests, onSubmi
                 <p className="font-bold border-b pb-1 text-navy uppercase text-[10px]">CONTRAT CADRE DE FAC-TUNISIE</p>
                 <p>
                   <strong>ENTRE LES SOUSSIGNÉS:</strong><br />
-                  Le Cédant : <strong>RecovTN Cédant Démo</strong>, sise à Tunis.<br />
+                  Le Cédant : <strong>RecovAI Cédant Démo</strong>, sise à Tunis.<br />
                   Le Factor : <strong>FACTOR Tunisie S.A.</strong>, agréé Banque Centrale de Tunisie.
                 </p>
                 <p>

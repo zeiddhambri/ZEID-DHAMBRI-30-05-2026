@@ -506,7 +506,7 @@ const DEFAULT_FEES: LegalFee[] = [
     currency: "TND",
     incurred_at: "2024-01-25",
     paid_at: "2024-02-10",
-    paid_by: "Banque RecovTN",
+    paid_by: "Banque RecovAI",
     recoverable_from_client: true,
     recovered_amount: 0,
     status: "paid",
@@ -521,7 +521,7 @@ const DEFAULT_FEES: LegalFee[] = [
     currency: "TND",
     incurred_at: "2024-01-20",
     paid_at: "2024-02-05",
-    paid_by: "Banque RecovTN",
+    paid_by: "Banque RecovAI",
     recoverable_from_client: true,
     recovered_amount: 0,
     status: "paid",
@@ -536,7 +536,7 @@ const DEFAULT_FEES: LegalFee[] = [
     currency: "TND",
     incurred_at: "2024-03-20",
     paid_at: "2024-04-10",
-    paid_by: "Banque RecovTN",
+    paid_by: "Banque RecovAI",
     recoverable_from_client: true,
     recovered_amount: 620,
     status: "recovered",
@@ -548,7 +548,7 @@ const DEFAULT_AUDIT: AuditLog[] = [
   {
     id: "AUD-0001",
     timestamp: "2026-05-30T10:15:00Z",
-    user: "user@recovtn.com",
+    user: "user@recovai.com",
     action: "Ouverture du système",
     details: "Accès à l'espace d'audit contentieux"
   }
@@ -629,7 +629,7 @@ export const LitigationStore = {
     const newLog: AuditLog = {
       id: `AUD-${Math.floor(100000 + Math.random() * 900000)}`,
       timestamp: new Date().toISOString(),
-      user: user || "système@recovtn.com",
+      user: user || "système@recovai.com",
       action,
       details
     };

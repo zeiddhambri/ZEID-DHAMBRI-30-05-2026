@@ -150,7 +150,7 @@ export default function TableauDeBordGlobal() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-gray-900">Tableau de bord global</h1>
-          <p className="text-xs text-gray-500 font-mono">Supervision multi-portefeuilles consolidée en temps réel | RecovTN</p>
+          <p className="text-xs text-gray-500 font-mono">Supervision multi-portefeuilles consolidée en temps réel | RecovAI</p>
         </div>
         <div className="flex items-center gap-2">
           <button 
@@ -500,7 +500,7 @@ export default function TableauDeBordGlobal() {
 
           <div className="text-[10px] text-gray-500 font-mono mt-4 pt-3 border-t border-white/5 flex items-center justify-between">
             <span>Rapport réglementaire BCT</span>
-            <span className="text-emerald-400/60 flex items-center gap-1"><ShieldAlert size={10} /> RecovTN Cognitive Core v3.5</span>
+            <span className="text-emerald-400/60 flex items-center gap-1"><ShieldAlert size={10} /> RecovAI Cognitive Core v3.5</span>
           </div>
         </div>
       </div>

@@ -9,7 +9,7 @@ export default function Footer() {
             <div className="flex items-center gap-2 mb-6">
               <span className="text-crimson text-2xl">✦</span>
               <div className="leading-none">
-                <div className="font-serif-display text-2xl text-white">RecovTN</div>
+                <div className="font-serif-display text-2xl text-white">RecovAI</div>
                 <div className="text-[10px] uppercase tracking-[0.2em] text-white/50 -mt-0.5">Collections</div>
               </div>
             </div>
@@ -66,7 +66,7 @@ export default function Footer() {
               </li>
               <li className="flex gap-3 text-white/70">
                 <Mail size={15} className="text-crimson shrink-0 mt-1" />
-                <span>contact@recovtn.com</span>
+                <span>contact@recovai.com</span>
               </li>
             </ul>
           </div>
@@ -74,7 +74,7 @@ export default function Footer() {
 
         <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-[12px] text-white/40 font-light">
-            © 2026 RecovTN Collections. Tous droits réservés.
+            © 2026 RecovAI Collections. Tous droits réservés.
           </p>
           <div className="flex gap-6">
             <a href="#" className="text-[12px] text-white/40 hover:text-white transition-colors font-light">Confidentialité</a>

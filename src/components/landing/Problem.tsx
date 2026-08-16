@@ -40,10 +40,7 @@ export default function Problem() {
           </div>
           <div className="lg:col-span-6 lg:pt-3">
             <p className="text-slate text-[17px] leading-[1.7] font-light">
-              RecovTN structure l'ensemble du cycle de vie de vos créances classifiées —
-              de la relance amiable au transfert judiciaire — avec un scoring de risque
-              objectif, un moteur de relance multicanal et un reporting conforme aux
-              exigences de la Banque Centrale de Tunisie.
+              RecovAI structure l'ensemble du cycle de vie de vos engagements financiers — de l'octroi prudent sous calibrage IFRS 9 au recouvrement amiable et contentieux. Nos modules spécialisés pour le Leasing (Crédit-Bail), le Factoring (Affacturage), et la Microfinance intègrent un scoring de risque intelligent, de la relance cognitive IA et un pilotage juridique sans faille.
             </p>
           </div>
         </div>

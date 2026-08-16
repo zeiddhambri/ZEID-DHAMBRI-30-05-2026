@@ -1,36 +1,36 @@
 import { motion } from 'framer-motion';
-import { Database, Scale, BarChart3, Bell, Send, Gauge, ArrowRight } from 'lucide-react';
+import { Calculator, Scale, Bot, TrendingUp, Workflow, Sprout, ArrowRight } from 'lucide-react';
 
 const features = [
   {
-    icon: Database,
-    title: 'Gestion des dossiers',
-    desc: "CRUD complet des créances avec 6 statuts normalisés : à relancer, en relance, promesse de paiement, partiellement payé, payé, transfert en contentieux. Affectation aux agents et historique des interactions.",
+    icon: Calculator,
+    title: 'Octroi de Crédit & IFRS 9',
+    desc: "Masse de décision pré-octroi avec simulateur de provisionnement prospectif IFRS 9, classification automatique (Bucketing Stage 1/2/3) et test de dégradation prospective avec facteurs macroéconomiques conformes aux directives BCT.",
   },
   {
-    icon: Send,
-    title: 'Moteur de relance multicanal',
-    desc: "Scénarios paramétrables (Standard, Intensif, Amiable) avec déclencheurs sur délais relatifs (J-5, J+1…) et conditions sur le score client. Canaux SMS, email, WhatsApp et appel.",
+    icon: TrendingUp,
+    title: 'Leasing & Crédit-Bail',
+    desc: "Gestion de bout en bout des contrats de crédit-bail : calculs des loyers impayés intégrés, indemnités financières de résiliation, valeur résiduelle et gestion des garanties matérielles.",
   },
   {
-    icon: Gauge,
-    title: 'Scoring de risque (0-100)',
-    desc: "Score pondéré sur 5 critères — montant, historique, ancienneté, réactivité, profil — qui classe chaque client en Fiable, À surveiller ou À risque pour prioriser vos actions.",
+    icon: Workflow,
+    title: 'Factoring & Affacturage',
+    desc: "Suivi de la relation tripartite (cédants, acheteurs, factor). Tableau de bord de cession des créances, conciliation, et accompagnement spécifique pour les créances institutionnelles (ex: STEG).",
+  },
+  {
+    icon: Sprout,
+    title: 'Recouvrement Microfinance',
+    desc: "Workflow de terrain adapté aux IMF : suivi des cautionnements solidaires, évaluation des Activités Génératrices de Revenus (AGR), relance de proximité et accompagnement éco-social.",
   },
   {
     icon: Scale,
-    title: 'Suivi judiciaire',
-    desc: "Agenda contentieux dédié pour suivre les dossiers transférés : échéances de procédure, intervenants et avancement consolidés.",
+    title: 'Contentieux Judiciaire & Frais',
+    desc: "Tableau de bord de suivi légal avec archivage sécurisé des documents juridiques certifiés, comptabilisation rigoureuse des frais de justice engagés, et pilotage des avocats partenaires.",
   },
   {
-    icon: Bell,
-    title: 'Veille réglementaire BCT & CTAF',
-    desc: "Module de veille des circulaires Banque Centrale de Tunisie et CTAF, intégré dans la plateforme pour alimenter votre conformité.",
-  },
-  {
-    icon: BarChart3,
-    title: 'Reporting & analytics',
-    desc: "Tableau de bord opérationnel et page Analytics avec indicateurs de performance, vues consolidées et exports prêts pour le régulateur.",
+    icon: Bot,
+    title: 'Moteur Cognitive & Relances IA',
+    desc: "Scénarios stratégiques autogénérés par l'IA (SMS, WhatsApp, emails personnalisés), priorisés par un scoring prédictif dynamique de recouvrement de 0 à 100.",
   },
 ];
 
@@ -47,7 +47,7 @@ export default function Features() {
           </div>
           <div className="lg:col-span-6 lg:col-start-7 lg:pt-4">
             <p className="text-slate text-[17px] leading-[1.7] font-light mb-6">
-              RecovTN couvre le cycle complet de la créance classifiée — de la
+              RecovAI couvre le cycle complet de la créance classifiée — de la
               première relance à la clôture du contentieux. Chaque module est
               opérationnel et conçu pour s'intégrer au workflow réel de vos
               équipes recouvrement.

@@ -1,5 +1,5 @@
 {
-  "name": "RecovTN",
+  "name": "RecovAI",
   "description": "Recouvrement de créances et gestion des contentieux en Tunisie",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

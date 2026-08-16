@@ -51,7 +51,7 @@ const statusClasses: Record<string, string> = {
 
 export default function MoteurRelance() {
   const { user } = useAuth();
-  const userEmail = user?.email || 'conseiller@recovtn.com';
+  const userEmail = user?.email || 'conseiller@recovai.com';
   
   // States
   const [rules, setRules] = useState<ReminderRule[]>(() => AutomationStore.getReminderRules());
@@ -271,7 +271,7 @@ export default function MoteurRelance() {
       
       // Since analyze content endpoint uses template prompts, let's tailor the AI feedback beautifully
       if (data.result) {
-        setAiSuggestions(`### Synthèse de l'Optimisation par IA (RecovTN Analyzer)
+        setAiSuggestions(`### Synthèse de l'Optimisation par IA (RecovAI Analyzer)
         
 * **Surcharges identifiées** : Le scénario de relance *SMS de Rappel J-3* affiche un taux d'envoi élevé (147 exécutions) mais s'exécute le week-end, diminuant le taux de réponse réel de 18% par rapport à un envoi en milieu de semaine (mardi/jeudi matin).
 * **Canal obsolète** : 2 dossiers Leasing critiques ne possèdent pas de canal de relance validé en dehors du rappel vocal, entraînant un goulot de traitement en retard.
@@ -333,7 +333,7 @@ export default function MoteurRelance() {
                 <Sparkles size={18} />
               </div>
               <div className="text-xs text-slate-700 leading-relaxed space-y-2">
-                <h4 className="font-extrabold text-violet-900 text-sm">Recommandations stratégiques RecovTN</h4>
+                <h4 className="font-extrabold text-violet-900 text-sm">Recommandations stratégiques RecovAI</h4>
                 <div className="whitespace-pre-wrap">{aiSuggestions}</div>
               </div>
             </div>

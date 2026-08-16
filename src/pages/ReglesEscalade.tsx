@@ -63,7 +63,7 @@ const actionMetadata: Record<string, { label: string, icon: any, color: string, 
 
 export default function ReglesEscalade() {
   const { user } = useAuth();
-  const userEmail = user?.email || 'conseiller@recovtn.com';
+  const userEmail = user?.email || 'conseiller@recovai.com';
   
   // Data State
   const [rules, setRules] = useState<EscalationRule[]>(() => AutomationStore.getEscalationRules());
@@ -259,7 +259,7 @@ export default function ReglesEscalade() {
       // Mock compilation fallback structured output logic
       const compiledRules: Partial<EscalationRule> = {
         name: 'Escalade Critique Factoring > 10K',
-        description: 'Généré par IA RecovTN suite au prompt : "si retard factoring supérieur à 10K alors transfert urgent"',
+        description: 'Généré par IA RecovAI suite au prompt : "si retard factoring supérieur à 10K alors transfert urgent"',
         trigger_condition: 'Retard > 20j ET Portefeuille = Factoring ET Montant > 10000 TND',
         portfolio_type: 'factoring',
         min_overdue_amount: 10000,

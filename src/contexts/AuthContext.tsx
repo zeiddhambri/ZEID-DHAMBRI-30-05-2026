@@ -19,7 +19,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Check if demo user is stored
-    const demoUserData = localStorage.getItem('recovtn_demo_user');
+    const demoUserData = localStorage.getItem('recovai_demo_user');
     if (demoUserData) {
       try {
         const parsed = JSON.parse(demoUserData);
@@ -28,14 +28,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false);
         return;
       } catch (e) {
-        localStorage.removeItem('recovtn_demo_user');
+        localStorage.removeItem('recovai_demo_user');
       }
     }
 
     // Listener FIRST (per Supabase best practice)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
       // Only set if we are not in demo mode
-      if (!localStorage.getItem('recovtn_demo_user')) {
+      if (!localStorage.getItem('recovai_demo_user')) {
         setSession(newSession);
         setUser(newSession?.user ?? null);
         setLoading(false);
@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Then load existing session
     supabase.auth.getSession().then(({ data: { session: existing } }) => {
-      if (!localStorage.getItem('recovtn_demo_user')) {
+      if (!localStorage.getItem('recovai_demo_user')) {
         setSession(existing);
         setUser(existing?.user ?? null);
       }
@@ -78,13 +78,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user: mockUser
     };
 
-    localStorage.setItem('recovtn_demo_user', JSON.stringify({ user: mockUser, session: mockSession }));
+    localStorage.setItem('recovai_demo_user', JSON.stringify({ user: mockUser, session: mockSession }));
     setSession(mockSession);
     setUser(mockUser);
   };
 
   const signOut = async () => {
-    localStorage.removeItem('recovtn_demo_user');
+    localStorage.removeItem('recovai_demo_user');
     try {
       await supabase.auth.signOut();
     } catch (e) {

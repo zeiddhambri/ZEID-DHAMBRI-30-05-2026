@@ -19,7 +19,7 @@ import FraisContentieuxTab from '@/components/litigation/FraisContentieuxTab';
 
 export default function Litigation() {
   const { user } = useAuth();
-  const userEmail = user?.email || 'user@recovtn.com';
+  const userEmail = user?.email || 'user@recovai.com';
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'dossiers';
 
@@ -234,7 +234,7 @@ export default function Litigation() {
             <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-3 relative z-10">
               <div className="flex items-center gap-2">
                 <Sparkles size={18} className="text-yellow-405 animate-bounce" />
-                <span className="text-xs font-black uppercase tracking-widest text-white">Recommandation Stratégique IA - RecovTN</span>
+                <span className="text-xs font-black uppercase tracking-widest text-white">Recommandation Stratégique IA - RecovAI</span>
               </div>
               <button
                 onClick={() => setAiAnalysisResult(null)}
@@ -309,7 +309,7 @@ export default function Litigation() {
             <p className="text-[11px] text-muted-foreground mt-0.5">Mises à jour réglementaires et signatures d'actes d'Amendes effectués par l'équipe.</p>
           </div>
           <button 
-            onClick={() => { LitigationStore.logAction(userEmail || 'user@recovtn.com', 'Nettoyage des archives', 'Consolidation manuelle de la piste d\'audit'); handleRefreshAll(); }}
+            onClick={() => { LitigationStore.logAction(userEmail || 'user@recovai.com', 'Nettoyage des archives', 'Consolidation manuelle de la piste d\'audit'); handleRefreshAll(); }}
             className="text-[10px] font-bold text-muted-foreground bg-secondary px-2.5 py-1.5 rounded border border-border/40 hover:bg-neutral-200 transition inline-flex items-center gap-1 cursor-pointer"
           >
             <RefreshCw size={11} className="text-muted-foreground" /> Consolider

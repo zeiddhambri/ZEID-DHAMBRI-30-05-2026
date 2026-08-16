@@ -1,47 +1,50 @@
 import { motion } from 'framer-motion';
-import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const plans = [
   {
-    name: 'Standard',
-    price: '499',
-    desc: "Pour les institutions financières et IMF qui démarrent leur digitalisation du recouvrement.",
+    name: 'STARTER',
+    price: '2 490 TND',
+    sub: '/mois · cible IMF & Leasing',
     features: [
-      "Jusqu'à 500 dossiers actifs",
-      'Gestion des 6 statuts de dossiers',
-      'Moteur de relance — scénario Standard',
-      'Scoring de risque inclus',
-      'Reporting opérationnel',
-      '1 utilisateur Admin',
+      '300 dossiers actifs',
+      'Tableaux de bord standard',
+      'Recouvrement complet (6 modules)',
+      'Contentieux complet (6 modules)',
+      'Moteur relance inclus',
+      '2 types de portefeuilles',
+      '+8 TND/dossier variable',
     ],
     featured: false,
   },
   {
-    name: 'Business',
-    price: '1 299',
-    desc: 'La solution complète pour les banques de taille moyenne et sociétés de recouvrement.',
+    name: 'PROFESSIONNEL ★',
+    price: '4 990 TND',
+    sub: '/mois · banques secondaires',
     features: [
       'Dossiers illimités',
-      'Tous scénarios de relance (Standard, Intensif, Amiable)',
-      'Canaux SMS, Email, WhatsApp, Appel',
-      'Suivi judiciaire & agenda contentieux',
-      'Veille BCT/CTAF + Reporting régulateur',
-      '5 utilisateurs',
+      'Rapports BCT automatiques',
+      '4 types de portefeuilles',
+      'Workflows avancés no-code',
+      'IA Scoring V1 NBA inclus',
+      'Portail Avocats/Huissiers',
+      'API JSON/XML export',
+      '+8 TND/dossier variable',
     ],
     featured: true,
   },
   {
-    name: 'Enterprise',
-    price: 'Sur mesure',
-    desc: 'Pour les grandes banques avec besoins d’intégration et de gouvernance avancés.',
+    name: 'ENTERPRISE',
+    price: '8 000+ TND',
+    sub: '/mois · grandes banques',
     features: [
-      'Déploiement dédié possible',
-      'Intégration avec votre Core Banking',
-      'Scoring & scénarios personnalisés',
-      'SLA & support dédié',
-      'Account Manager dédié',
-      'Utilisateurs illimités',
+      'Portefeuilles illimités',
+      'IA Prédictive V2 ML/NLP',
+      'Multi-entités / Multi-pays',
+      'SLA 99,9 % + Account Manager',
+      'Performance fee : 0,8 % delta',
+      'Connecteur BCT/SIBTEL',
+      'Tarif négociable',
     ],
     featured: false,
   },
@@ -58,61 +61,61 @@ export default function Pricing() {
           </h2>
           <p className="text-slate text-[17px] font-light">
             Choisissez la formule qui correspond à la taille de votre portefeuille
-            de créances classifiées et au niveau de fonctionnalités recherché.
+            de créances et au niveau de fonctionnalités de recouvrement recherché.
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6 lg:gap-8 items-stretch">
+        <div className="grid lg:grid-cols-3 gap-6 lg:gap-8 items-stretch pt-4">
           {plans.map((plan, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
+              whileHover={{ y: -6, transition: { duration: 0.25, ease: 'easeOut' } }}
               transition={{ duration: 0.5, delay: i * 0.1 }}
               viewport={{ once: true }}
               className={cn(
-                'relative p-10 rounded-sm transition-all duration-300 flex flex-col',
+                'relative p-10 rounded-sm flex flex-col transition-shadow duration-300 ease-out cursor-pointer',
                 plan.featured
-                  ? 'bg-charcoal text-white shadow-xl'
-                  : 'bg-white border border-border hover:shadow-lg'
+                  ? 'bg-white border-2 border-crimson shadow-lg hover:shadow-2xl scale-102 lg:scale-105'
+                  : 'bg-white border border-border shadow-sm hover:shadow-xl hover:border-slate-300'
               )}
             >
               {plan.featured && (
-                <div className="absolute -top-3 left-10 bg-crimson text-white text-[10px] font-semibold uppercase tracking-[0.2em] px-4 py-1.5 rounded-full">
-                  Recommandé
+                <div className="absolute -top-3.5 left-1/2 transform -translate-x-1/2 bg-crimson text-white text-[11px] font-bold px-4 py-1 rounded-full shadow-md">
+                  ★
                 </div>
               )}
 
-              <div className="text-[11px] font-semibold uppercase tracking-[0.2em] mb-5 text-crimson">
+              <div className={cn(
+                "text-[11px] font-semibold uppercase tracking-[0.2em] mb-5",
+                plan.featured ? "text-crimson" : "text-slate"
+              )}>
                 {plan.name}
               </div>
 
-              <div className="flex items-baseline gap-2 mb-4">
-                <span className="font-serif-display text-5xl">{plan.price}</span>
-                {plan.price !== 'Sur mesure' && (
-                  <span className={cn('text-sm font-light', plan.featured ? 'text-white/60' : 'text-slate')}>
-                    TND / mois
-                  </span>
-                )}
+              <div className="flex flex-col mb-6">
+                <span className="font-serif-display text-4xl lg:text-5xl font-bold text-charcoal">
+                  {plan.price}
+                </span>
+                <span className="text-sm font-light text-slate mt-2 italic">
+                  {plan.sub}
+                </span>
               </div>
 
-              <p className={cn('text-[15px] mb-8 leading-relaxed font-light', plan.featured ? 'text-white/70' : 'text-slate')}>
-                {plan.desc}
-              </p>
-
-              <div className={cn('h-px w-full mb-8', plan.featured ? 'bg-white/15' : 'bg-border')} />
+              <div className={cn('h-px w-full mb-8', plan.featured ? 'bg-crimson/20' : 'bg-border')} />
 
               <ul className="space-y-3.5 mb-10 flex-1">
                 {plan.features.map((feat, j) => (
                   <li key={j} className="flex items-start gap-3 text-[14px] font-light leading-relaxed">
-                    <Check size={16} strokeWidth={2} className="shrink-0 mt-0.5 text-crimson" />
-                    <span className={plan.featured ? 'text-white/85' : 'text-charcoal'}>{feat}</span>
+                    <span className="text-crimson font-bold shrink-0 mt-0.5">✓</span>
+                    <span className="text-charcoal">{feat}</span>
                   </li>
                 ))}
               </ul>
 
-              <button className={plan.featured ? 'btn-crimson w-full' : 'btn-outline-crimson w-full'}>
-                {plan.price === 'Sur mesure' ? 'Nous contacter' : 'Demander une démo'}
+              <button className={plan.featured ? 'btn-crimson w-full font-medium' : 'btn-outline-crimson w-full font-medium'}>
+                {plan.name === 'ENTERPRISE' ? 'Nous contacter' : 'Demander une démo'}
               </button>
             </motion.div>
           ))}

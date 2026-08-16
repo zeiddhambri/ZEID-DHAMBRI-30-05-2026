@@ -95,7 +95,7 @@ export default function FraisContentieuxTab({ onRefreshAll, userEmail }: FraisCo
     }
 
     LitigationStore.logAction(
-      userEmail || 'user@recovtn.com', 
+      userEmail || 'user@recovai.com', 
       'Enregistrement frais', 
       `Engagement de charge pour "${F_TYPES[feeType]}" valued at ${parseFloat(feeAmount).toLocaleString()} TND (Numéro d'affaire : ${caseId})`
     );
@@ -150,7 +150,7 @@ export default function FraisContentieuxTab({ onRefreshAll, userEmail }: FraisCo
     setFees(list);
 
     LitigationStore.logAction(
-      userEmail || 'user@recovtn.com', 
+      userEmail || 'user@recovai.com', 
       'Règlement de frais', 
       `Arbitrage des frais contentieux pour la charge ${selectedFee.id} : validation en état "${decisionType}"`
     );
@@ -484,7 +484,7 @@ export default function FraisContentieuxTab({ onRefreshAll, userEmail }: FraisCo
                       <textarea
                         value={decisionNotes}
                         onChange={e => setDecisionNotes(e.target.value)}
-                        placeholder="Ex: Facture réglée par virement du compte d'exploitation RecovTN..."
+                        placeholder="Ex: Facture réglée par virement du compte d'exploitation RecovAI..."
                         rows={2}
                         className="w-full bg-secondary border border-border rounded-lg p-2 text-xs text-foreground focus:outline-none resize-none font-semibold"
                         required

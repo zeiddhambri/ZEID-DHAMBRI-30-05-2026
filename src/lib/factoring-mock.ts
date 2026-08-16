@@ -151,7 +151,7 @@ export const initialRequests: FactoringRequest[] = [
   {
     id: 'req-1',
     requestNumber: 'REQ-FACT-2026-001',
-    companyName: 'RecovTN Cédant Démo',
+    companyName: 'RecovAI Cédant Démo',
     debtorNames: ['TUNISIE TELECOM S.A.'],
     totalInvoiceAmount: 240000,
     requestedAdvanceRate: 0.85,

@@ -332,12 +332,12 @@ export const findCase = (id: string) => litigationCases.find(c => c.id === id);
 
 // ─── Creditor (for PDF templates) ───
 export const CREDITOR = {
-  name: 'BANQUE RECOVTN',
+  name: 'BANQUE RECOVAI',
   address: 'Avenue Mohamed V, Tour Banque Centrale',
   city: 'Tunis',
   zip: '1001',
   phone: '+216 71 100 200',
-  email: 'contentieux@recovtn.com',
+  email: 'contentieux@recovai.com',
   siren: 'TN-RC-B112233',
   rib: 'TN59 0000 0000 1234 5678 9012',
 };

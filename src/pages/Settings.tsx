@@ -20,11 +20,11 @@ const ROLES = [
 ];
 
 const mockUsers: UserProfile[] = [
-  { uid: '1', email: 'admin@recovtn.com', displayName: 'Admin Principal', role: 'admin' },
-  { uid: '2', email: 'slim.mansour@recovtn.com', displayName: 'Slim Mansour', role: 'recouvreur' },
-  { uid: '3', email: 'amel.ben@recovtn.com', displayName: 'Amel Ben Ali', role: 'gestionnaire contentieux' },
-  { uid: '4', email: 'karim.dir@recovtn.com', displayName: 'Karim Directeur', role: 'directeur' },
-  { uid: '5', email: 'comite@recovtn.com', displayName: 'Membre Comité', role: 'comite' },
+  { uid: '1', email: 'admin@recovai.com', displayName: 'Admin Principal', role: 'admin' },
+  { uid: '2', email: 'slim.mansour@recovai.com', displayName: 'Slim Mansour', role: 'recouvreur' },
+  { uid: '3', email: 'amel.ben@recovai.com', displayName: 'Amel Ben Ali', role: 'gestionnaire contentieux' },
+  { uid: '4', email: 'karim.dir@recovai.com', displayName: 'Karim Directeur', role: 'directeur' },
+  { uid: '5', email: 'comite@recovai.com', displayName: 'Membre Comité', role: 'comite' },
 ];
 
 export default function Settings() {
@@ -163,7 +163,7 @@ export default function Settings() {
           <div className="space-y-4">
             <div className="p-4 bg-mist rounded-xl">
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Nom</p>
-              <p className="text-sm font-bold text-navy">RecovTN — Organisation par défaut</p>
+              <p className="text-sm font-bold text-navy">RecovAI — Organisation par défaut</p>
             </div>
             <div className="p-4 bg-mist rounded-xl">
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Plan actif</p>

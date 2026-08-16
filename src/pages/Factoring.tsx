@@ -279,7 +279,7 @@ export default function Factoring() {
           {
             id: 'log-' + Math.floor(Math.random() * 10000),
             timestamp: new Date().toISOString(),
-            user: 'Système RecovTN',
+            user: 'Système RecovAI',
             action: 'Rassemblement & Solde',
             details: `Le débiteur final a payé ${req.totalInvoiceAmount.toLocaleString()} TND. Fonds de Garantie libéré et restitué.`,
             category: 'payment'
@@ -318,7 +318,7 @@ export default function Factoring() {
           {
             id: 'log-' + Math.floor(Math.random() * 10000),
             timestamp: new Date().toISOString(),
-            user: 'Moteur d\'alertes RecovTN',
+            user: 'Moteur d\'alertes RecovAI',
             action: 'Accroissement de risque - Retard',
             details: `Factures liées au dossier ${req.requestNumber} déclarées en souffrance de règlement.`,
             category: 'invoice'

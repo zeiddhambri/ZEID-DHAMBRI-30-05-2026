@@ -324,7 +324,7 @@ export default function TousPortefeuilles() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `RecovTN_Portefeuille_Consolide_${new Date().toISOString().slice(0,10)}.csv`);
+    link.setAttribute('download', `RecovAI_Portefeuille_Consolide_${new Date().toISOString().slice(0,10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -535,7 +535,7 @@ export default function TousPortefeuilles() {
               </div>
               <div className="flex-1">
                 <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  Synthèse Analytique du Portefeuille · Moteur d&apos;Audit RecovTN
+                  Synthèse Analytique du Portefeuille · Moteur d&apos;Audit RecovAI
                   <span className="text-[10px] font-medium bg-indigo-200 text-indigo-800 py-0.5 px-2 rounded-full uppercase">IA Active</span>
                 </h4>
                 <div className="prose text-gray-700 text-sm max-w-none space-y-3 whitespace-pre-wrap font-sans" id="ai-report-body">

@@ -198,8 +198,11 @@ export default function AppSidebar() {
   return (
     <aside className="w-64 h-screen bg-navy text-white flex flex-col border-r border-white/5 fixed left-0 top-0 z-50">
       <div className="p-6 shrink-0">
-        <Link to="/" className="text-2xl font-extrabold tracking-tighter font-syne hover:opacity-80 transition-opacity">
-          <span className="text-sky">Recov</span>TN
+        <Link to="/" className="flex items-center gap-2 hover:opacity-85 transition-opacity">
+          <span className="text-crimson text-2xl">✦</span>
+          <div className="leading-none">
+            <div className="font-serif-display text-2xl text-white tracking-tight">RecovAI</div>
+          </div>
         </Link>
         <div className="mt-2 flex items-center gap-2 px-2 py-1 bg-white/5 rounded-lg border border-white/10">
           <ShieldCheck size={14} className="text-gold" />

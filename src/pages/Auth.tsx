@@ -25,10 +25,10 @@ export default function Auth() {
 
   const handleDemoSignIn = (role: 'agent' | 'admin' = 'agent') => {
     if (role === 'admin') {
-      signInWithDemo("admin@recovtn.tn", "Administrateur Principal (Démo)");
+      signInWithDemo("admin@recovai.tn", "Administrateur Principal (Démo)");
       toast({ title: 'Mode Administrateur Activé', description: 'Connexion réussie en tant qu\'administrateur.' });
     } else {
-      signInWithDemo("demo-agent@recovtn.tn", "Agent de Recouvrement (Démo)");
+      signInWithDemo("demo-agent@recovai.tn", "Agent de Recouvrement (Démo)");
       toast({ title: 'Mode Démo Activé', description: 'Connexion réussie en tant qu\'agent de démonstration.' });
     }
     navigate(redirectTo, { replace: true });
@@ -168,7 +168,7 @@ export default function Auth() {
         <div className="w-full max-w-md bg-white border border-border rounded-sm shadow-sm p-8">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-crimson text-2xl">✦</span>
-            <span className="font-serif-display text-2xl text-charcoal">RecovTN</span>
+            <span className="font-serif-display text-2xl text-charcoal">RecovAI</span>
           </div>
           <h1 className="text-xl font-medium text-charcoal mb-1">Accès à la plateforme</h1>
           <p className="text-sm text-slate mb-6">Gestion du recouvrement bancaire</p>
