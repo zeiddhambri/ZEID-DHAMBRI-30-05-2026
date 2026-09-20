@@ -59,7 +59,8 @@ export default function IndicateursRecouvrement() {
 
       setSummary(summaryData);
       setCharts(chartsData);
-      setTableData(tableRaw.data || []);
+      const list = Array.isArray(tableRaw) ? tableRaw : (Array.isArray(tableRaw?.data) ? tableRaw.data : []);
+      setTableData(list);
     } catch (err: any) {
       toast({
         title: "Erreur de synchronisation",

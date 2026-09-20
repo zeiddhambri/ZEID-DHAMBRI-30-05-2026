@@ -124,11 +124,12 @@ export default function AnalyticsContentieux() {
       }
 
       const dataKpis: LitigationKPIs = await resKpis.json();
-      const dataTable: EnrichedLitigationCase[] = await resTable.json();
+      const dataTable = await resTable.json();
       const dataCharts = await resCharts.json();
 
       setKpis(dataKpis);
-      setTableData(dataTable);
+      const safeTable = Array.isArray(dataTable) ? dataTable : (Array.isArray(dataTable?.data) ? dataTable.data : []);
+      setTableData(safeTable);
       setChartsData(dataCharts);
     } catch (err: any) {
       console.error(err);

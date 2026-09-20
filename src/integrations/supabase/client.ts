@@ -399,6 +399,13 @@ const safeFetch = async (url: RequestInfo | URL, options?: RequestInit): Promise
       payload = { signedUrl: "https://placeholder-co-db.supabase.co/mock-url", path: "mock-path" };
     } else if (urlStr.includes('/functions/v1/')) {
       payload = getMockFunctionsResponse(urlStr);
+    } else if (urlStr.includes('/rest/v1/')) {
+      const restPath = urlStr.substring(urlStr.indexOf('/rest/v1/'));
+      try {
+        return await window.fetch(restPath, options);
+      } catch (e) {
+        console.warn('[Supabase client] Local REST fetch fallback:', e);
+      }
     }
     return new Response(JSON.stringify(payload), {
       status: 200,

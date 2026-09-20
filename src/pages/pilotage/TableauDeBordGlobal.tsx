@@ -61,7 +61,10 @@ export default function TableauDeBordGlobal() {
 
       setSummary(summaryData);
       setCharts(chartsData);
-      setCriticalItems(criticalData);
+      const itemsList = Array.isArray(criticalData) 
+        ? criticalData 
+        : (Array.isArray(criticalData?.items) ? criticalData.items : []);
+      setCriticalItems(itemsList);
     } catch (err: any) {
       toast({
         title: "Erreur de synchronisation",
@@ -397,7 +400,7 @@ export default function TableauDeBordGlobal() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50 text-xs">
-                {criticalItems.length === 0 ? (
+                {(!Array.isArray(criticalItems) || criticalItems.length === 0) ? (
                   <tr>
                     <td colSpan={5} className="py-4 text-center text-gray-400 font-mono">Aucun dossier critique détecté sous ces critères.</td>
                   </tr>
