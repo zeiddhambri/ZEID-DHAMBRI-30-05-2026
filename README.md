@@ -25,20 +25,25 @@ Application web couvrant le cycle de vie de la créance pour les **banques, soci
 - `supabase/functions/*` — fonctions Edge (extraction documentaire IA, note de crédit, moteur IFRS 9) ; **ne décident jamais** : elles produisent des recommandations explicables soumises à validation humaine.
 - Les imports de documents (XLSX/CSV/PDF/DOCX) sont extraits **dans le navigateur** (`src/lib/file-extract.ts`) avant toute transmission structurée.
 
-## Sécurité — posture actuelle (lot P0, sept. 2026)
+## Sécurité & données — posture actuelle (lots P0 + P1, sept. 2026)
 
 | Contrôle | État |
 |---|---|
 | Authentification de l'API (jeton signé HMAC-SHA256, expiration 8 h) | ✅ `/api/auth/login`, `requireAuth` sur toutes les routes métier |
 | Mots de passe hachés (scrypt, sel aléatoire), comparaison à temps constant | ✅ |
 | RBAC serveur par rôle (`admin` / `manager` / `agent`) sur les actes sensibles (suppression dossier, modèles, règles d'escalade, institutions) | ✅ |
-| Journal d'audit avec auteur, horodatage et chaînage de hash, consultable via `GET /api/audit` (manager/admin) | ✅ (v1 démo) |
+| Journal d'audit avec auteur, horodatage et chaînage de hash, consultable via `GET /api/audit` (manager/admin) + export CSV (`?format=csv`) | ✅ (append-only garanti par trigger en mode Postgres) |
 | Limitation de débit (8 tentatives de login / 5 min / IP ; 300 req/min globales) | ✅ |
 | CORS par allowlist (`ALLOWED_ORIGINS`), en-têtes `nosniff`/`DENY`/`no-referrer`, body JSON borné | ✅ |
 | Validation zod de tous les corps d'écriture (400 + détails d'erreur) | ✅ (routes critiques) |
 | Mode démo explicite (`VITE_DEMO_MODE=1` + `ALLOW_DEMO_TOKEN=1`), **sans contournement de mot de passe** ; bandeau « données synthétiques » permanent | ✅ |
 | Données de démonstration 100 % synthétiques (entités marquées DEMO/SYNTH, téléphones/e-mails fictifs `example.test`) | ✅ |
-| Chiffrement au repos, SSO (OIDC/SAML), MFA, isolation multi-institution au niveau base (RLS par `institution_id`), audit immuable en base + export SIEM, connecteurs batch (SFTP/MT940), pentest externe, ISO 27001 | 🔜 Lots P1/P2 — plan détaillé : `docs/ANALYSE-PRESENTATION-INSTITUTIONS-FINANCIERES.md` |
+| Isolation multi-institution au niveau base (**RLS Postgres** par institution, `USING`+`WITH CHECK`, rôle applicatif non-privilegié) | ✅ (mode `DATABASE_URL`) — filtrage applicatif équivalent en mode JSON de démo |
+| Verrou optimiste (`version`/`If-Match`, conflit → 409), pagination serveur, suppression logique auditable (`deleted_at`) | ✅ |
+| Exports batch cloisonnés : `GET /api/export/dossiers.csv` (séparateur `;`, prêt pour échange SFTP) et `.json` horodaté | ✅ |
+| Pseudonymisation des prompts IA côté serveur (`server/redact.ts`, `AI_REDACT=on` par défaut) | ✅ |
+| Contrat API `public/openapi.yaml` (servi sur `/openapi.yaml`), ADR + doc d'architecture, CI (lint, tsc strict, tests dont intégration Postgres, SBOM), `Dockerfile` + `docker-compose.yml` | ✅ |
+| Chiffrement au repos, SSO (OIDC/SAML), MFA, passerelles SMS/e-mail réelles, SFTP managé + OAuth2 tiers, pentest externe, ISO 27001 | 🔜 Lots P1 restants / P2 — plan détaillé : `docs/ANALYSE-PRESENTATION-INSTITUTIONS-FINANCIERES.md` |
 
 **Conformité** : l'outil est une **assistance** aux référentiels (circulaire BCT 2013-21 de classification/déclassement, IFRS 9 ECL, loi organique 2004-63 sur les données personnelles). Il ne prétend à aucune certification ; les responsables de traitement restent les établissements utilisateurs.
 
@@ -60,13 +65,37 @@ Comptes backend de démonstration (mots de passe par défaut, surchargeables via
 | Agent | `agent@recovai.tn` | `RecovAI#Agent!2026` |
 | Directeur (manager) | `directeur@recovai.tn` | `RecovAI#Manager!2026` |
 | Admin | `admin@recovai.tn` | `RecovAI#Admin!2026` |
+| Agent — Amen Bank uniquement | `agent.amen@recovai.tn` | `RecovAI#Tenant!2026` (surcharge `DEMO_TENANT_PASSWORD`) |
+| Agent — Enda Tamweel uniquement | `agent.tunisiemf@recovai.tn` | `RecovAI#Tenant!2026` |
+
+> Les deux comptes « Agent cloisonné » démontrent le multi-tenant P1 : chacun ne voit (et ne peut écrire) que dans son institution, y compris au niveau moteur en mode Postgres.
 
 > À remplacer par l'annuaire/SSO de l'institution avant tout pilote. Ne jamais laisser ces comptes sur une instance accessible hors démo.
+
+## Persistance (lot P1)
+
+Sans configuration, l'application tourne sur le **store JSON de démo** (`data/recovai_db.json`,
+données synthétiques). Pour la source de vérité Postgres :
+
+```bash
+# Base locale de test (binaires embarqués via npm) + suite d'intégration :
+npm run test:pg:local
+
+# Environnement complet :
+docker compose up --build     # app:3000 + postgres:16, migrations auto, cloisonnement RLS actif
+
+# Migration sur une instance existante :
+DATABASE_URL=postgres://user:pass@host:5432/recovai npm run migrate:pg
+```
+
+`DATABASE_URL` présent ⇒ routes dossiers/audit/export sur Postgres (RLS par GUC
+`app.institution`, rôle applicatif `recovai_app` non-privilegié) ; les collections non
+migrées (contentieux, leasing…) restent sur le store JSON — voir `docs/adr/0001-postgres-source-de-verite.md`.
 
 ## Production
 
 ```bash
-npm run build && NODE_ENV=production npm start
+npm run build && NODE_ENV=production npm start     # ou : docker compose up --build
 ```
 
 Variables d'environnement (voir `.env.example`) : `APP_AUTH_SECRET` (secret de signature, à gérer via Vault/KMS), `ALLOWED_ORIGINS`, `PORT`, `GEMINI_API_KEY`, `SUPABASE_JWT_SECRET` (vérification des jetons Supabase si utilisée).
@@ -74,8 +103,12 @@ Variables d'environnement (voir `.env.example`) : `APP_AUTH_SECRET` (secret de s
 ## Qualité
 
 ```bash
-npm run lint     # ESLint
-npm run test     # Vitest (unités : auth, RBAC, validation, audit, moteur ECL)
+npm run lint        # ESLint
+npm run test        # Vitest — unités (auth, RBAC, validation, audit, redaction, moteur ECL)
+                    # + intégration HTTP supertest (store JSON : 401/403/400/409, pagination,
+                    #   cloisonnement, soft-delete, chaînage d'audit, export CSV)
+npm run test:pg:local   # idem + suite PgRepo sur Postgres embarqué (RLS, append-only, triggers)
+npx tsc --noEmit -p tsconfig.server.json   # typecheck strict du backend (CI)
 ```
 
 Tests de bout en bout Playwright et CI (lint+typecheck+tests+SCA) : planifiés lot P1.8.

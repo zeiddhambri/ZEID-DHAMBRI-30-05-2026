@@ -45,7 +45,10 @@ export const createDossierSchema = z.object({
   user_id: z.string().optional(), // ignoré : l'auteur est dérivé du jeton
 });
 
-export const updateDossierSchema = createDossierSchema.partial().omit({ user_id: true });
+// `version` (verrou optimiste, lot P1) est déclaré pour survivre au stripping zod.
+export const updateDossierSchema = createDossierSchema.partial().omit({ user_id: true }).extend({
+  version: z.number().int().positive().optional(),
+});
 
 export const createLitigationSchema = z.object({
   id: z.string().trim().max(60).optional(),

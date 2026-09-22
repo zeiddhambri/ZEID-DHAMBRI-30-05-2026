@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { db } from '../db/dataStore';
+import { getRepository, scopedDossiers } from '../db/repo';
 import { audit, requireRole } from '../auth';
 import { validate, relanceSendSchema, templateSchema, escalationRuleSchema } from '../validation';
 
@@ -19,11 +20,11 @@ router.get('/', (req, res) => {
 });
 
 // POST send immediate relance (SMS, Email, Call, Letter)
-router.post('/send', validate(relanceSendSchema), (req, res) => {
+router.post('/send', validate(relanceSendSchema), async (req, res) => {
   const { dossierId, templateId, channel = 'sms', customMessage, recipient } = req.body;
 
-  const dossiers = db.getDossiers();
-  const dossier = dossiers.find(d => String(d.id) === String(dossierId) || d.client_code === dossierId);
+  const dossiers = await scopedDossiers(req.auth?.institution || null);
+  let dossier = dossiers.find(d => String(d.id) === String(dossierId) || d.client_code === dossierId);
 
   if (!dossier) {
     return res.status(404).json({ error: 'Dossier introuvable' });
@@ -57,11 +58,19 @@ router.post('/send', validate(relanceSendSchema), (req, res) => {
     timestamp: new Date().toISOString()
   };
 
-  // Update dossier status to en_relance if it was a_relancer
+  // Update dossier status to en_relance if it was a_relancer — via le repo (source de vérité).
   if (dossier.status === 'a_relancer') {
-    dossier.status = 'en_relance';
-    dossier.updated_at = new Date().toISOString();
+    const actor = { sub: req.auth!.sub, email: req.auth!.email, role: req.auth!.role, institution: req.auth!.institution ?? null };
+    const patched = await getRepository().patchDossier(String(dossier.id), { status: 'en_relance' }, actor, null);
+    if (patched.ok) dossier = patched.after;
   }
+
+  await getRepository().appendAudit({
+    action: 'RELANCE_SIMULATED',
+    details: `Relance ${String(channel).toUpperCase()} simulée (${logEntry.templateUsed}) sur ${dossier.client_code}`,
+    actorEmail: req.auth!.email, actorRole: req.auth!.role, actorId: req.auth!.sub,
+    entityType: 'dossier', entityId: String(dossier.id), after: { status: 'simulated', channel, templateUsed: logEntry.templateUsed },
+  });
 
   db.getRelanceLogs().unshift(logEntry);
   db.save();
@@ -231,18 +240,28 @@ router.patch('/escalade/:id/toggle', requireRole('admin', 'manager'), (req, res)
 });
 
 // POST execute escalation engine — le moteur journalise chaque bascule
-router.post('/escalade/run-engine', (req, res) => {
-  const dossiers = db.getDossiers();
+router.post('/escalade/run-engine', async (req, res) => {
+  const actor = { sub: req.auth!.sub, email: req.auth!.email, role: req.auth!.role, institution: req.auth!.institution ?? null };
+  const repo = getRepository();
+  const dossiers = await scopedDossiers(req.auth?.institution || null);
   const rules = db.getEscalationRules().filter(r => r.active);
   const escalated: any[] = [];
 
-  dossiers.forEach(d => {
+  for (const d of dossiers) {
     const delay = Number(d.delay_days) || 0;
-    rules.forEach(r => {
+    for (const r of rules) {
       if (delay >= r.triggerDays && d.management_level !== r.targetLevel && d.status !== 'paye') {
         const prevLevel = d.management_level;
-        d.management_level = r.targetLevel;
-        d.updated_at = new Date().toISOString();
+        const patched = await repo.patchDossier(String(d.id), { management_level: r.targetLevel }, actor, null);
+        if (patched.ok) d.management_level = patched.after.management_level;
+
+        await repo.appendAudit({
+          action: 'ESCALATION_APPLIED',
+          details: `Dossier ${d.client_code} escaladé « ${prevLevel} → ${r.targetLevel} » par la règle « ${r.name} »`,
+          actorEmail: actor.email, actorRole: actor.role, actorId: actor.sub,
+          entityType: 'dossier', entityId: String(d.id),
+          before: { management_level: prevLevel }, after: { management_level: r.targetLevel },
+        });
 
         escalated.push({
           dossierId: d.id,
@@ -255,10 +274,8 @@ router.post('/escalade/run-engine', (req, res) => {
 
         audit('ESCALATION_APPLIED', `Dossier ${d.client_code} escaladé « ${prevLevel} → ${r.targetLevel} » par la règle « ${r.name} »`, req.auth);
       }
-    });
-  });
-
-  db.save();
+    }
+  }
 
   audit('ESCALATION_ENGINE_RUN', `Exécution manuelle du moteur d'escalade — ${escalated.length} bascule(s) sur ${dossiers.length} dossier(s)`, req.auth);
 

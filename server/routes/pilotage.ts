@@ -2,15 +2,16 @@ import { Router } from 'express';
 import { db } from '../db/dataStore';
 import { GoogleGenAI } from '@google/genai';
 import { audit } from '../auth';
+import { scopedDossiers } from '../db/repo';
 
 const router = Router();
 
 // ==========================================
 // 1. TABLEAU DE BORD GLOBAL
 // ==========================================
-router.get('/tableau-de-bord-global/summary', (req, res) => {
+router.get('/tableau-de-bord-global/summary', async (req, res) => {
   const { portfolio, portfolioL1, categoryL2, subCategoryL3, productL4, riskLevel, institution, branch } = req.query;
-  let dossiers = db.getDossiers();
+  let dossiers = await scopedDossiers(req.auth?.institution || null);
   const cases = db.getLitigationCases();
   const relances = db.getRelanceLogs();
 
@@ -141,8 +142,8 @@ router.get('/tableau-de-bord-global/charts', (req, res) => {
   });
 });
 
-router.get('/tableau-de-bord-global/critical-items', (req, res) => {
-  const dossiers = db.getDossiers();
+router.get('/tableau-de-bord-global/critical-items', async (req, res) => {
+  const dossiers = await scopedDossiers(req.auth?.institution || null);
   const cases = db.getLitigationCases();
 
   const mappedDossiers = dossiers
@@ -213,8 +214,8 @@ Le recouvrement consolidé affiche une hausse de **+12.4%**, tiré par le dénou
 // ==========================================
 // 2. INDICATEURS RECOUVREMENT
 // ==========================================
-router.get('/indicateurs-recouvrement/summary', (req, res) => {
-  const dossiers = db.getDossiers();
+router.get('/indicateurs-recouvrement/summary', async (req, res) => {
+  const dossiers = await scopedDossiers(req.auth?.institution || null);
   const totalDossiers = dossiers.reduce((acc, d) => acc + (Number(d.amount) || 0), 0) || 4280000;
   const totalRecovered = dossiers.reduce((acc, d) => acc + (Number(d.recovered_amount) || 0), 0) || 980000;
 
@@ -266,8 +267,8 @@ router.get('/indicateurs-recouvrement/charts', (req, res) => {
   });
 });
 
-router.get('/indicateurs-recouvrement/table', (req, res) => {
-  const dossiers = db.getDossiers();
+router.get('/indicateurs-recouvrement/table', async (req, res) => {
+  const dossiers = await scopedDossiers(req.auth?.institution || null);
   const mapped = dossiers.map(d => ({
     ...d,
     id: d.id,
@@ -321,8 +322,8 @@ Les dossiers ayant dépassé 60 jours de retard sans protocole doivent être imm
   });
 });
 
-router.get('/indicateurs-recouvrement/export', (req, res) => {
-  const dossiers = db.getDossiers();
+router.get('/indicateurs-recouvrement/export', async (req, res) => {
+  const dossiers = await scopedDossiers(req.auth?.institution || null);
   let csv = 'Code,Debiteur,Montant,Recouvre,Statut,Echeance,Portefeuille\n';
   dossiers.forEach(d => {
     csv += `"${d.client_code}","${d.debtor_name}",${d.amount},${d.recovered_amount},"${d.status}","${d.due_date}","${d.portfolio}"\n`;

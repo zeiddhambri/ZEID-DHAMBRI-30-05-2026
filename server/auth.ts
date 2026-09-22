@@ -17,6 +17,8 @@ export interface AuthUserPayload {
   email: string;
   name: string;
   role: 'admin' | 'manager' | 'agent';
+  /** Cloisonnement locataire (P1) : null = compte transverse (administration/démo). */
+  institution?: string | null;
   iat: number;
   exp: number;
   iss: string;
@@ -27,7 +29,9 @@ const ISSUER = 'recovai-app';
 
 // ---------------- Secret ----------------
 
-const DATA_DIR = path.join(process.cwd(), 'data');
+const DATA_DIR = process.env.RECOVAI_DATA_DIR
+  ? path.resolve(process.env.RECOVAI_DATA_DIR)
+  : path.join(process.cwd(), 'data');
 const SECRET_FILE = path.join(DATA_DIR, '.auth-secret');
 let cachedSecret: Buffer | null = null;
 
@@ -66,15 +70,16 @@ interface StoredUser {
   email: string;
   name: string;
   role: 'admin' | 'manager' | 'agent';
+  institution: string | null;
   salt: string;
   hash: string;
 }
 
-function makeStoredUser(email: string, name: string, role: StoredUser['role'], password: string): StoredUser {
+function makeStoredUser(email: string, name: string, role: StoredUser['role'], password: string, institution: string | null = null): StoredUser {
   const salt = crypto.randomBytes(16).toString('hex');
   const hash = crypto.scryptSync(password, salt, 64).toString('hex');
   const id = crypto.createHash('sha256').update(email.toLowerCase()).digest('hex').slice(0, 16);
-  return { id, email: email.toLowerCase(), name, role, salt, hash };
+  return { id, email: email.toLowerCase(), name, role, institution, salt, hash };
 }
 
 // Comptes de démonstration : mots de passe surchargeables par variables d'environnement.
@@ -83,6 +88,9 @@ const SEED_USERS: StoredUser[] = [
   makeStoredUser('admin@recovai.tn', 'Administrateur (Démo)', 'admin', process.env.DEMO_ADMIN_PASSWORD || 'RecovAI#Admin!2026'),
   makeStoredUser('directeur@recovai.tn', 'Directeur des Risques (Démo)', 'manager', process.env.DEMO_MANAGER_PASSWORD || 'RecovAI#Manager!2026'),
   makeStoredUser('agent@recovai.tn', 'Agent de Recouvrement (Démo)', 'agent', process.env.DEMO_AGENT_PASSWORD || 'RecovAI#Agent!2026'),
+  // Comptes cloisonnés (démo multi-tenant du lot P1.2) : ne voient que leur institution.
+  makeStoredUser('agent.amen@recovai.tn', 'Agent Amen Bank (Démo)', 'agent', process.env.DEMO_TENANT_PASSWORD || 'RecovAI#Tenant!2026', 'Amen Bank'),
+  makeStoredUser('agent.tunisiemf@recovai.tn', 'Agent Enda Tamweel (Démo)', 'agent', process.env.DEMO_TENANT_PASSWORD || 'RecovAI#Tenant!2026', 'Enda Tamweel'),
 ];
 
 export function findUserByEmail(email: string): StoredUser | undefined {
@@ -105,13 +113,14 @@ function b64url(input: Buffer | string): string {
   return Buffer.from(input).toString('base64url');
 }
 
-export function signToken(user: { id: string; email: string; name: string; role: StoredUser['role'] }, ttlSeconds: number = TOKEN_TTL_SECONDS): { token: string; expiresAt: number } {
+export function signToken(user: { id: string; email: string; name: string; role: StoredUser['role']; institution?: string | null }, ttlSeconds: number = TOKEN_TTL_SECONDS): { token: string; expiresAt: number } {
   const now = Math.floor(Date.now() / 1000);
   const payload: AuthUserPayload = {
     sub: user.id,
     email: user.email,
     name: user.name,
     role: user.role,
+    institution: user.institution ?? null,
     iat: now,
     exp: now + ttlSeconds,
     iss: ISSUER,
@@ -158,6 +167,7 @@ function verifySupabaseJwt(jwt: string): AuthUserPayload | null {
     email: String(claims.email || 'utilisateur@supabase'),
     name: String(claims.user_metadata?.full_name || claims.email || 'Utilisateur'),
     role,
+    institution: claims.app_metadata?.institution ?? claims.user_metadata?.institution ?? null,
     iat: claims.iat ?? 0,
     exp: claims.exp ?? Math.floor(Date.now() / 1000) + 3600,
     iss: 'supabase',
@@ -174,6 +184,7 @@ export function authenticateRequest(rawToken: string | undefined): AuthUserPaylo
       email: 'demo@recovai.local',
       name: 'Session de démonstration',
       role: 'admin',
+      institution: null,
       iat: 0,
       exp: Math.floor(Date.now() / 1000) + 86400,
       iss: 'recovai-demo',
@@ -220,10 +231,15 @@ export function requireRole(...roles: AuthUserPayload['role'][]) {
 interface Bucket { count: number; resetAt: number }
 const buckets = new Map<string, Bucket>();
 
+let limiterSeq = 0;
 export function rateLimit(maxPerWindow: number, windowMs: number) {
+  // Chaque instance de limiteur possède son propre compteur (sinon le limiteur de
+  // login 8/5 min consommait le bucket commun avec le limiteur global /api → 429
+  // prématurés ; bug corrigé au lot P1).
+  const limiterName = `rl-${++limiterSeq}`;
   return (req: Request, res: Response, next: NextFunction) => {
     const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.ip || 'inconnu';
-    const key = `${ip}`;
+    const key = `${limiterName}|${ip}`;
     const now = Date.now();
     const current = buckets.get(key);
     if (!current || current.resetAt <= now) {
@@ -260,7 +276,7 @@ export function audit(action: string, details: string, actor?: { email?: string;
       actorRole: actor?.role || 'system',
       timestamp: new Date().toISOString(),
     };
-    const hash = crypto.createHash('sha256').update(prevHash + JSON.stringify(entry)).digest('hex').slice(0, 32);
+    const hash = crypto.createHash('sha256').update(prevHash + JSON.stringify(entry)).digest('hex');
     logs.unshift({ ...entry, prevHash, hash });
     // Limite simple du journal de démo (P1: journal dédié en base avec rétention).
     if (logs.length > 5000) logs.length = 5000;

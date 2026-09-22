@@ -3,6 +3,7 @@ import { db } from '../db/dataStore';
 import { GoogleGenAI } from '@google/genai';
 import { audit } from '../auth';
 import { validate, eclRequestSchema } from '../validation';
+import { redactForPrompt } from '../redact';
 
 const router = Router();
 
@@ -141,8 +142,8 @@ router.post('/ai-analysis', async (req, res) => {
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
       const prompt = `Tu es le Directeur des Engagements et du Risque de Crédit Bancaire en Tunisie (Expert Bâle III & IFRS 9).
-Données de la demande de crédit:
-${JSON.stringify({ borrowerData, financialRatios, creditHistory }, null, 2)}
+Données de la demande de crédit (pseudonymisées avant envoi au modèle — lot P1.4):
+${redactForPrompt({ borrowerData, financialRatios, creditHistory }).text}
 
 Produis une note d'analyse du risque de crédit détaillée comprenant:
 1. Recommandation d'octroi (Acceptation, Acceptation conditionnelle ou Refus) avec niveau de confiance.

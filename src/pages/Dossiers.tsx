@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Plus, MoreVertical } from 'lucide-react';
+import { Search, Plus, MoreVertical, Building2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { statusConfig, DossierComplet } from '@/lib/mock-data';
@@ -33,6 +33,7 @@ export default function Dossiers() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [dbDossiers, setDbDossiers] = useState<DossierComplet[]>([]);
+  const [scope, setScope] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
 
   const load = async () => {
@@ -42,6 +43,7 @@ export default function Dossiers() {
       // fusion silencieuse avec des listes mock non identifiées.
       const res: any = await api.dossiers.getAll();
       setDbDossiers(((res?.data) || []).map(dbRowToDossier));
+      setScope(res?.scope?.institution ?? null);
     } catch {
       setDbDossiers([]);
     }
@@ -65,6 +67,13 @@ export default function Dossiers() {
         <div>
           <h1 className="text-3xl font-black text-navy tracking-tight font-syne">Gestion Des Dossiers Recouvrement</h1>
           <p className="text-muted-foreground mt-1">Gérez vos dossiers de recouvrement et suivez les actions en cours.</p>
+          <span className={cn(
+            "inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-full text-[11px] font-bold border",
+            scope ? "bg-sky/10 text-sky border-sky/20" : "bg-amber-500/10 text-amber-600 border-amber-500/20"
+          )}>
+            <Building2 size={12} />
+            {scope ? `Périmètre cloisonné : ${scope}` : 'Périmètre : tous portefeuilles (compte transverse)'}
+          </span>
         </div>
         <button onClick={() => setOpen(true)} className="flex items-center gap-2 px-5 py-2.5 bg-sky text-white rounded-xl text-sm font-bold hover:bg-sky/90 transition-all shadow-lg shadow-sky/20">
           <Plus size={18} />

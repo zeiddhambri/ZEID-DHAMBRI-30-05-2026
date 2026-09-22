@@ -23,7 +23,9 @@ export interface DataStoreSchema {
   scheduledReports: any[];
 }
 
-const DB_DIR = path.join(process.cwd(), 'data');
+const DB_DIR = process.env.RECOVAI_DATA_DIR
+  ? path.resolve(process.env.RECOVAI_DATA_DIR)
+  : path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DB_DIR, 'recovai_db.json');
 
 // --- INITIAL SEED DATA ---

@@ -81,6 +81,24 @@ describe('audit journal (P0)', () => {
     expect(logs.length).toBe(before + 2);
     expect(logs[0].actor).toBe('admin@recovai.tn');
     expect(logs[0].prevHash).toBe(logs[1].hash);
-    expect(logs[1].hash).toHaveLength(32);
+    expect(logs[1].hash).toHaveLength(64); // SHA-256 complet depuis P1
+  });
+});
+
+describe('rateLimit — cloisonnement des compteurs (correctif P1)', () => {
+  it('deux limiteurs partagés sur la même IP ne consomment pas le même bucket', async () => {
+    const { rateLimit } = await import('./auth');
+    const strict = rateLimit(2, 60_000);
+    const large = rateLimit(50, 60_000);
+    const req = { headers: { 'x-forwarded-for': '9.9.9.9' }, ip: '9.9.9.9' } as any;
+    const res: any = { status() { return res; }, json() { return res; } };
+    let nextCalls = 0;
+    const next = () => { nextCalls++; };
+    strict(req, res, next);
+    strict(req, res, next);
+    strict(req, res, next); // 3e sur le strict -> 429, next non appelé
+    expect(nextCalls).toBe(2);
+    for (let i = 0; i < 10; i++) large(req, res, next); // le large ne doit pas être épuisé
+    expect(nextCalls).toBe(12);
   });
 });

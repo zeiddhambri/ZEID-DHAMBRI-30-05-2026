@@ -1,6 +1,8 @@
-import * as XLSX from 'xlsx';
+// Lecture de documents pour l'import de dossiers (lot P1.8 : xlsx/SheetJS —
+// version npm non corrigée des avis ReDoS/prototype-pollution — remplacé par exceljs).
 import Papa from 'papaparse';
 import mammoth from 'mammoth';
+import ExcelJS from 'exceljs';
 
 export type ExtractedDossier = {
   debtor_name: string;
@@ -26,6 +28,35 @@ async function readPdfText(file: File): Promise<string> {
   return txt;
 }
 
+function cellToString(v: any): string {
+  if (v === null || v === undefined) return '';
+  if (v instanceof Date) return v.toISOString().slice(0, 10);
+  if (typeof v === 'object') {
+    if ('result' in v) return cellToString((v as any).result);
+    if ('text' in v) return cellToString((v as any).text);
+    if ('richText' in v) return (v as any).richText.map((rt: any) => rt.text).join('');
+    if ('hyperlink' in v) return String(v.hyperlink ?? v.text ?? '');
+    return String(v);
+  }
+  return String(v);
+}
+
+function workbookToText(wb: ExcelJS.Workbook): string {
+  let out = '';
+  wb.eachSheet((ws: any) => {
+    out += `# Feuille: ${ws.name}\n`;
+    if (typeof ws.eachRow === 'function') {
+      ws.eachRow({ includeEmpty: false }, (row: any) => {
+        const values = row.values as any[];
+        const cells: string[] = [];
+        for (let i = 1; i < values.length; i++) cells.push(cellToString(values[i]));
+        out += cells.join(',') + '\n';
+      });
+    }
+  });
+  return out;
+}
+
 export async function fileToText(file: File): Promise<{ text: string; isTabular: boolean }> {
   const ext = file.name.split('.').pop()?.toLowerCase() || '';
   if (ext === 'pdf') return { text: await readPdfText(file), isTabular: false };
@@ -38,15 +69,30 @@ export async function fileToText(file: File): Promise<{ text: string; isTabular:
     const text = await file.text();
     return { text, isTabular: true };
   }
-  if (ext === 'xlsx' || ext === 'xls') {
+  if (ext === 'xlsx') {
     const buf = await file.arrayBuffer();
-    const wb = XLSX.read(buf, { type: 'array' });
-    let out = '';
-    wb.SheetNames.forEach((n) => {
-      const csv = XLSX.utils.sheet_to_csv(wb.Sheets[n]);
-      out += `# Feuille: ${n}\n${csv}\n`;
-    });
-    return { text: out, isTabular: true };
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(buf);
+    return { text: workbookToText(wb), isTabular: true };
+  }
+  if (ext === 'xls') {
+    // Le format binaire legacy (.xls) n'est pas couvert par exceljs :
+    // demander un .xlsx plutôt que réintroduire SheetJS.
+    throw new Error('Format .xls non pris en charge : enregistrez le classeur au format .xlsx.');
   }
   return { text: await file.text(), isTabular: false };
+}
+
+/** Parseur CSV tabulaire pour imports de dossiers (utilisé par l'écran de saisie). */
+export function parseCsv(text: string): { headers: string[]; rows: Record<string, string>[] } {
+  const parsed = Papa.parse<string[]>(text, { skipEmptyLines: true });
+  const data = (parsed.data || []) as string[][];
+  if (!data.length) return { headers: [], rows: [] };
+  const headers = data[0].map(h => String(h).trim());
+  const rows = data.slice(1).map(r => {
+    const obj: Record<string, string> = {};
+    headers.forEach((h, i) => { obj[h] = String(r[i] ?? '').trim(); });
+    return obj;
+  });
+  return { headers, rows };
 }
