@@ -17,6 +17,10 @@ export default defineConfig(() => {
     server: {
       host: '0.0.0.0',
       port: 3000,
+      // Environnements de présentation derrière un proxy (previews éphémères type
+      // *.e2b.app) : cette relaxation ne vise que le serveur de développement ;
+      // le build de production est servi par Express, sans Vite.
+      allowedHosts: ['.e2b.app', 'localhost'],
       hmr: process.env.DISABLE_HMR !== 'true',
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
     },

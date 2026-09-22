@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload, X, Loader2, Sparkles, FileText, Trash2, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { api } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { fileToText, ExtractedDossier } from '@/lib/file-extract';
@@ -85,18 +86,22 @@ export default function NouveauDossierModal({ open, onClose, onCreated }: Props)
       return;
     }
     setSaving(true);
-    const code = `RCV-${new Date().getFullYear()}-${Math.floor(Math.random() * 9000 + 1000)}`;
-    const { error } = await supabase.from('dossiers').insert({
-      user_id: user.id, client_code: code,
-      debtor_name: form.debtor_name, debtor_email: form.debtor_email || null,
-      debtor_phone: form.debtor_phone || null, amount: form.amount,
-      due_date: form.due_date || null, assigned_to: form.assigned_to,
-      management_level: form.management_level, status: form.status,
-    });
-    setSaving(false);
-    if (error) { toast({ title: 'Erreur', description: error.message, variant: 'destructive' }); return; }
-    toast({ title: 'Dossier créé' });
-    onCreated(); onClose();
+    try {
+      // Persistance via l'API RecovAI authentifiée (lot P0 : voie de données unique).
+      await api.dossiers.create({
+        client_code: `RCV-${new Date().getFullYear()}-${Math.floor(Math.random() * 9000 + 1000)}`,
+        debtor_name: form.debtor_name, debtor_email: form.debtor_email || null,
+        debtor_phone: form.debtor_phone || null, amount: form.amount,
+        due_date: form.due_date || null, assigned_to: form.assigned_to,
+        management_level: form.management_level, status: form.status,
+      });
+      toast({ title: 'Dossier créé' });
+      onCreated(); onClose();
+    } catch (e: any) {
+      toast({ title: 'Erreur', description: e?.message || 'Création impossible', variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleImportSave = async () => {
@@ -116,11 +121,16 @@ export default function NouveauDossierModal({ open, onClose, onCreated }: Props)
       status: 'a_relancer',
     }));
     if (!rows.length) { setSaving(false); toast({ title: 'Aucune ligne valide', variant: 'destructive' }); return; }
-    const { error } = await supabase.from('dossiers').insert(rows);
-    setSaving(false);
-    if (error) { toast({ title: 'Erreur', description: error.message, variant: 'destructive' }); return; }
-    toast({ title: `${rows.length} dossier(s) importé(s)` });
-    onCreated(); onClose();
+    try {
+      for (const row of rows) await api.dossiers.create(row);
+      toast({ title: `${rows.length} dossier(s) importé(s)` });
+      onCreated(); onClose();
+    } catch (e: any) {
+      toast({ title: 'Erreur', description: e?.message || 'Import partiellement enregistré', variant: 'destructive' });
+      onCreated();
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (

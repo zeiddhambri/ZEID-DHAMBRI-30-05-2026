@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { db } from '../db/dataStore';
+import { audit, requireRole } from '../auth';
+import { validate, relanceSendSchema, templateSchema, escalationRuleSchema } from '../validation';
 
 const router = Router();
 
@@ -17,7 +19,7 @@ router.get('/', (req, res) => {
 });
 
 // POST send immediate relance (SMS, Email, Call, Letter)
-router.post('/send', (req, res) => {
+router.post('/send', validate(relanceSendSchema), (req, res) => {
   const { dossierId, templateId, channel = 'sms', customMessage, recipient } = req.body;
 
   const dossiers = db.getDossiers();
@@ -47,7 +49,11 @@ router.post('/send', (req, res) => {
     recipient: recipient || dossier.debtor_phone || dossier.debtor_email || 'Contact officiel',
     templateUsed: template?.name || 'Message direct',
     content: finalContent,
-    status: 'delivered',
+    // Statut honnête : aucune passerelle SMS/e-mail n'est branchée (P0).
+    // La preuve d'envoi opposable (statut webhook du FA, horodatage qualifié)
+    // est livrée au lot P1.5. En attendant, ne jamais présenter 'delivered'.
+    status: 'simulated',
+    initiatedBy: req.auth?.email || 'system',
     timestamp: new Date().toISOString()
   };
 
@@ -60,8 +66,11 @@ router.post('/send', (req, res) => {
   db.getRelanceLogs().unshift(logEntry);
   db.save();
 
+  audit('RELANCE_SIMULATED', `Relance ${String(channel).toUpperCase()} simulée (démonstration) sur dossier ${dossier.client_code}`, req.auth);
+
   res.status(201).json({
-    message: `Relance ${channel.toUpperCase()} transmise avec succès`,
+    message: `Relance ${String(channel).toUpperCase()} simulée : message généré et journalisé. Aucune passerelle SMS/e-mail n'est connectée dans cet environnement.`,
+    simulated: true,
     log: logEntry,
     dossierStatus: dossier.status
   });
@@ -81,12 +90,8 @@ router.get('/templates', (req, res) => {
 });
 
 // POST create template
-router.post('/templates', (req, res) => {
+router.post('/templates', validate(templateSchema), (req, res) => {
   const { name, channel, category, subject, content, variables } = req.body;
-
-  if (!name || !content) {
-    return res.status(400).json({ error: 'Nom et contenu du modèle obligatoires' });
-  }
 
   const templates = db.getTemplates();
   const newTemplate = {
@@ -103,11 +108,13 @@ router.post('/templates', (req, res) => {
   templates.push(newTemplate);
   db.save();
 
+  audit('CREATE_TEMPLATE', `Création du modèle de message « ${name} »`, req.auth);
+
   res.status(201).json(newTemplate);
 });
 
-// PUT update template
-router.put('/templates/:id', (req, res) => {
+// PUT update template — manager/admin uniquement (impact sur les communications clients)
+router.put('/templates/:id', requireRole('admin', 'manager'), (req, res) => {
   const templates = db.getTemplates();
   const index = templates.findIndex(t => t.id === req.params.id);
 
@@ -121,11 +128,13 @@ router.put('/templates/:id', (req, res) => {
   };
   db.save();
 
+  audit('UPDATE_TEMPLATE', `Modification du modèle « ${templates[index].name} »`, req.auth);
+
   res.json(templates[index]);
 });
 
-// DELETE template
-router.delete('/templates/:id', (req, res) => {
+// DELETE template — admin uniquement
+router.delete('/templates/:id', requireRole('admin'), (req, res) => {
   const templates = db.getTemplates();
   const index = templates.findIndex(t => t.id === req.params.id);
 
@@ -134,6 +143,7 @@ router.delete('/templates/:id', (req, res) => {
   }
 
   const removed = templates.splice(index, 1)[0];
+  audit('DELETE_TEMPLATE', `Suppression du modèle « ${removed?.name} »`, req.auth);
   db.save();
 
   res.json({ message: 'Modèle supprimé', removedId: removed.id });
@@ -180,13 +190,9 @@ router.get('/escalade', (req, res) => {
   });
 });
 
-// POST create escalation rule
-router.post('/escalade', (req, res) => {
+// POST create escalation rule — manager/admin (les règles pilotent les affectations et escalades)
+router.post('/escalade', requireRole('admin', 'manager'), validate(escalationRuleSchema), (req, res) => {
   const { name, triggerDays, condition, action, targetLevel } = req.body;
-
-  if (!name || !triggerDays) {
-    return res.status(400).json({ error: 'Nom et délai de déclenchement obligatoires' });
-  }
 
   const rules = db.getEscalationRules();
   const newRule = {
@@ -202,11 +208,13 @@ router.post('/escalade', (req, res) => {
   rules.push(newRule);
   db.save();
 
+  audit('CREATE_ESCALATION_RULE', `Création de la règle d'escalade « ${name} » (déclencheur J+${Number(triggerDays)})`, req.auth);
+
   res.status(201).json(newRule);
 });
 
-// PATCH toggle escalation rule
-router.patch('/escalade/:id/toggle', (req, res) => {
+// PATCH toggle escalation rule — manager/admin
+router.patch('/escalade/:id/toggle', requireRole('admin', 'manager'), (req, res) => {
   const rules = db.getEscalationRules();
   const rule = rules.find(r => r.id === req.params.id);
 
@@ -217,10 +225,12 @@ router.patch('/escalade/:id/toggle', (req, res) => {
   rule.active = !rule.active;
   db.save();
 
+  audit('TOGGLE_ESCALATION_RULE', `Règle « ${rule.name} » ${rule.active ? 'activée' : 'désactivée'}`, req.auth);
+
   res.json(rule);
 });
 
-// POST execute escalation engine
+// POST execute escalation engine — le moteur journalise chaque bascule
 router.post('/escalade/run-engine', (req, res) => {
   const dossiers = db.getDossiers();
   const rules = db.getEscalationRules().filter(r => r.active);
@@ -242,11 +252,15 @@ router.post('/escalade/run-engine', (req, res) => {
           newLevel: r.targetLevel,
           triggeredRule: r.name
         });
+
+        audit('ESCALATION_APPLIED', `Dossier ${d.client_code} escaladé « ${prevLevel} → ${r.targetLevel} » par la règle « ${r.name} »`, req.auth);
       }
     });
   });
 
   db.save();
+
+  audit('ESCALATION_ENGINE_RUN', `Exécution manuelle du moteur d'escalade — ${escalated.length} bascule(s) sur ${dossiers.length} dossier(s)`, req.auth);
 
   res.json({
     message: 'Moteur d\'escalade exécuté avec succès',

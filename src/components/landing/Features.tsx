@@ -5,7 +5,7 @@ const features = [
   {
     icon: Calculator,
     title: 'Octroi de Crédit & IFRS 9',
-    desc: "Masse de décision pré-octroi avec simulateur de provisionnement prospectif IFRS 9, classification automatique (Bucketing Stage 1/2/3) et test de dégradation prospective avec facteurs macroéconomiques conformes aux directives BCT.",
+    desc: "Masse de décision pré-octroi avec simulateur de provisionnement prospectif IFRS 9, classification automatique (Bucketing Stage 1/2/3) et test de dégradation prospective avec facteurs macroéconomiques, alignées sur les référentiels BCT et IFRS 9 (outil d'aide à la décision, sans certification).",
   },
   {
     icon: TrendingUp,
@@ -25,7 +25,7 @@ const features = [
   {
     icon: Scale,
     title: 'Contentieux Judiciaire & Frais',
-    desc: "Tableau de bord de suivi légal avec archivage sécurisé des documents juridiques certifiés, comptabilisation rigoureuse des frais de justice engagés, et pilotage des avocats partenaires.",
+    desc: "Tableau de bord de suivi légal avec archivage horodaté des documents juridiques avec contrôle de conformité interne, comptabilisation rigoureuse des frais de justice engagés, et pilotage des avocats partenaires.",
   },
   {
     icon: Bot,

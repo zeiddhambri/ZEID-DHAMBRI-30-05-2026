@@ -1,238 +1,160 @@
 // Typed API client for RecovAI Express Backend
+// Lot P0 : chaque appel transporte le jeton Bearer émis par /api/auth/login.
+// En cas de 401, la session locale est purgée et l'utilisateur est redirigé.
+
+import { readStoredAuth, clearAuth } from '@/contexts/AuthContext';
+
+async function request(path: string, init: RequestInit = {}): Promise<Response> {
+  const headers = new Headers(init.headers);
+  const auth = readStoredAuth();
+  if (auth?.token) headers.set('Authorization', `Bearer ${auth.token}`);
+  if (init.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
+
+  const res = await fetch(path, { ...init, headers });
+
+  if (res.status === 401) {
+    clearAuth();
+    if (!window.location.pathname.startsWith('/auth')) {
+      window.location.assign('/auth');
+    }
+    throw new Error('Session expirée ou invalide. Reconnectez-vous.');
+  }
+  if (res.status === 403) {
+    const body = await res.json().catch(() => ({}) as any);
+    throw new Error(body?.error || 'Privilèges insuffisants pour cette opération.');
+  }
+  return res;
+}
+
+async function getJson(path: string) {
+  const res = await request(path);
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}) as any);
+    throw new Error(body?.error || `Erreur serveur (HTTP ${res.status})`);
+  }
+  return res.json();
+}
+
+async function postJson(path: string, body?: unknown, method: 'POST' | 'PATCH' | 'PUT' = 'POST') {
+  const res = await request(path, {
+    method,
+    ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+  });
+  const data = await res.json().catch(() => ({}) as any);
+  if (!res.ok) {
+    const detail = Array.isArray(data?.details) && data.details.length
+      ? ` — ${data.details.map((d: any) => `${d.path}: ${d.message}`).join('; ')}`
+      : '';
+    throw new Error(`${data?.error || `Erreur serveur (HTTP ${res.status})`}${detail}`);
+  }
+  return data;
+}
 
 export const api = {
+  auth: {
+    me: async () => getJson('/api/auth/me'),
+  },
+
+  audit: {
+    getLogs: async (limit = 200) => getJson(`/api/audit?limit=${limit}`),
+  },
+
   health: {
-    check: async () => {
-      const res = await fetch('/api/health');
-      return res.json();
-    }
+    check: async () => getJson('/api/health'),
   },
 
   dossiers: {
     getAll: async (params?: { status?: string; search?: string; management_level?: string; portfolio?: string }) => {
-      const query = new URLSearchParams(params as any).toString();
-      const res = await fetch(`/api/dossiers?${query}`);
-      return res.json();
+      const query = new URLSearchParams((params || {}) as any).toString();
+      return getJson(`/api/dossiers?${query}`);
     },
-    getStats: async () => {
-      const res = await fetch('/api/dossiers/stats/summary');
-      return res.json();
-    },
-    getById: async (id: string) => {
-      const res = await fetch(`/api/dossiers/${id}`);
-      return res.json();
-    },
-    create: async (data: any) => {
-      const res = await fetch('/api/dossiers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      return res.json();
-    },
-    update: async (id: string, data: any) => {
-      const res = await fetch(`/api/dossiers/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
+    getStats: async () => getJson('/api/dossiers/stats/summary'),
+    getById: async (id: string) => getJson(`/api/dossiers/${id}`),
+    create: async (data: any) => postJson('/api/dossiers', data),
+    update: async (id: string, data: any) => postJson(`/api/dossiers/${id}`, data, 'PATCH'),
+    remove: async (id: string) => {
+      const res = await request(`/api/dossiers/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Suppression refusée (réservé aux rôles directeur/admin).');
       return res.json();
     },
     delete: async (id: string) => {
-      const res = await fetch(`/api/dossiers/${id}`, { method: 'DELETE' });
+      const res = await request(`/api/dossiers/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Suppression refusée (réservé aux rôles directeur/admin).');
       return res.json();
     },
-    recordAction: async (id: string, action: any) => {
-      const res = await fetch(`/api/dossiers/${id}/actions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(action)
-      });
-      return res.json();
-    }
+    recordAction: async (id: string, action: any) => postJson(`/api/dossiers/${id}/actions`, action)
   },
 
   leasing: {
     getAll: async (params?: { status?: string; search?: string }) => {
-      const query = new URLSearchParams(params as any).toString();
-      const res = await fetch(`/api/portefeuilles/leasing?${query}`);
-      return res.json();
+      const query = new URLSearchParams((params || {}) as any).toString();
+      return getJson(`/api/portefeuilles/leasing?${query}`);
     },
-    getStats: async () => {
-      const res = await fetch('/api/portefeuilles/leasing/stats');
-      return res.json();
-    },
-    getById: async (id: string) => {
-      const res = await fetch(`/api/portefeuilles/leasing/${id}`);
-      return res.json();
-    },
-    create: async (data: any) => {
-      const res = await fetch('/api/portefeuilles/leasing', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      return res.json();
-    },
-    simulateEarlyTermination: async (id: string, formula: string) => {
-      const res = await fetch(`/api/portefeuilles/leasing/${id}/early-termination`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ formula })
-      });
-      return res.json();
-    }
+    getStats: async () => getJson('/api/portefeuilles/leasing/stats'),
+    getById: async (id: string) => getJson(`/api/portefeuilles/leasing/${id}`),
+    create: async (data: any) => postJson('/api/portefeuilles/leasing', data),
+    simulateEarlyTermination: async (id: string, formula: string) =>
+      postJson(`/api/portefeuilles/leasing/${id}/early-termination`, { formula })
   },
 
   factoring: {
-    getDebtors: async () => {
-      const res = await fetch('/api/portefeuilles/factoring/debtors');
-      return res.json();
-    },
+    getDebtors: async () => getJson('/api/portefeuilles/factoring/debtors'),
     getInvoices: async (params?: { status?: string; debtorId?: string }) => {
-      const query = new URLSearchParams(params as any).toString();
-      const res = await fetch(`/api/portefeuilles/factoring/invoices?${query}`);
-      return res.json();
+      const query = new URLSearchParams((params || {}) as any).toString();
+      return getJson(`/api/portefeuilles/factoring/invoices?${query}`);
     },
-    createInvoice: async (data: any) => {
-      const res = await fetch('/api/portefeuilles/factoring/invoices', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      return res.json();
-    }
+    createInvoice: async (data: any) => postJson('/api/portefeuilles/factoring/invoices', data)
   },
 
   contentieux: {
     getAll: async (params?: { stage?: string; search?: string }) => {
-      const query = new URLSearchParams(params as any).toString();
-      const res = await fetch(`/api/contentieux/dossiers?${query}`);
-      return res.json();
+      const query = new URLSearchParams((params || {}) as any).toString();
+      return getJson(`/api/contentieux/dossiers?${query}`);
     },
-    getStats: async () => {
-      const res = await fetch('/api/contentieux/stats');
-      return res.json();
-    },
-    getById: async (id: string) => {
-      const res = await fetch(`/api/contentieux/dossiers/${id}`);
-      return res.json();
-    },
-    create: async (data: any) => {
-      const res = await fetch('/api/contentieux/dossiers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      return res.json();
-    },
-    updateStage: async (id: string, stage: string) => {
-      const res = await fetch(`/api/contentieux/dossiers/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stage })
-      });
-      return res.json();
-    },
-    addHearing: async (id: string, hearing: any) => {
-      const res = await fetch(`/api/contentieux/dossiers/${id}/hearings`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(hearing)
-      });
-      return res.json();
-    },
-    addPayment: async (id: string, payment: any) => {
-      const res = await fetch(`/api/contentieux/dossiers/${id}/payments`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payment)
-      });
-      return res.json();
-    },
-    getLawyers: async () => {
-      const res = await fetch('/api/contentieux/lawyers');
-      return res.json();
-    },
-    getBailiffs: async () => {
-      const res = await fetch('/api/contentieux/bailiffs');
-      return res.json();
-    }
+    getStats: async () => getJson('/api/contentieux/stats'),
+    getById: async (id: string) => getJson(`/api/contentieux/dossiers/${id}`),
+    create: async (data: any) => postJson('/api/contentieux/dossiers', data),
+    updateStage: async (id: string, stage: string) => postJson(`/api/contentieux/dossiers/${id}`, { stage }, 'PATCH'),
+    addHearing: async (id: string, hearing: any) => postJson(`/api/contentieux/dossiers/${id}/hearings`, hearing),
+    addPayment: async (id: string, payment: any) => postJson(`/api/contentieux/dossiers/${id}/payments`, payment),
+    getLawyers: async () => getJson('/api/contentieux/lawyers'),
+    getBailiffs: async () => getJson('/api/contentieux/bailiffs')
   },
 
   relances: {
-    getAll: async () => {
-      const res = await fetch('/api/relances');
-      return res.json();
-    },
-    send: async (data: { dossierId: string; channel?: string; templateId?: string; customMessage?: string }) => {
-      const res = await fetch('/api/relances/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      return res.json();
-    },
-    getTemplates: async () => {
-      const res = await fetch('/api/relances/templates');
-      return res.json();
-    },
-    previewTemplate: async (content: string, values?: any) => {
-      const res = await fetch('/api/relances/templates/preview', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content, values })
-      });
-      return res.json();
-    },
-    getEscaladeRules: async () => {
-      const res = await fetch('/api/relances/escalade');
-      return res.json();
-    },
-    runEscalationEngine: async () => {
-      const res = await fetch('/api/relances/escalade/run-engine', { method: 'POST' });
-      return res.json();
-    }
+    getAll: async () => getJson('/api/relances'),
+    send: async (data: { dossierId: string; channel?: string; templateId?: string; customMessage?: string }) =>
+      postJson('/api/relances/send', data),
+    getTemplates: async () => getJson('/api/relances/templates'),
+    previewTemplate: async (content: string, values?: any) => postJson('/api/relances/templates/preview', { content, values }),
+    getEscaladeRules: async () => getJson('/api/relances/escalade'),
+    runEscalationEngine: async () => postJson('/api/relances/escalade/run-engine')
   },
 
   creditIfrs9: {
-    calculateEcl: async (params: any) => {
-      const res = await fetch('/api/credit-ifrs9/calculate-ecl', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(params)
-      });
-      return res.json();
-    },
-    analyzeAi: async (params: any) => {
-      const res = await fetch('/api/credit-ifrs9/ai-analysis', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(params)
-      });
-      return res.json();
-    }
+    calculateEcl: async (params: any) => postJson('/api/credit-ifrs9/calculate-ecl', params),
+    analyzeAi: async (params: any) => postJson('/api/credit-ifrs9/ai-analysis', params)
   },
 
   clients: {
-    search: async (q: string) => {
-      const res = await fetch(`/api/clients/search?q=${encodeURIComponent(q)}`);
-      return res.json();
+    search: async (q: string) => getJson(`/api/clients/search?q=${encodeURIComponent(q)}`),
+    getProfile: async (nameOrId: string) => getJson(`/api/clients/${encodeURIComponent(nameOrId)}/profile`)
+  },
+
+  institutions: {
+    getAll: async (params?: { category?: string; search?: string }) => {
+      const query = new URLSearchParams((params || {}) as any).toString();
+      return getJson(`/api/institutions?${query}`);
     },
-    getProfile: async (nameOrId: string) => {
-      const res = await fetch(`/api/clients/${encodeURIComponent(nameOrId)}/profile`);
-      return res.json();
-    }
+    getStats: async () => getJson('/api/institutions/stats'),
+    create: async (data: any) => postJson('/api/institutions', data)
   },
 
   pilotage: {
-    getDashboardSummary: async () => {
-      const res = await fetch('/api/pilotage/tableau-de-bord-global/summary');
-      return res.json();
+    getDashboardSummary: async (params?: Record<string, string>) => {
+      const query = new URLSearchParams(params || {}).toString();
+      return getJson(`/api/pilotage/tableau-de-bord-global/summary${query ? `?${query}` : ''}`);
     },
-    getDashboardCharts: async () => {
-      const res = await fetch('/api/pilotage/tableau-de-bord-global/charts');
-      return res.json();
-    }
+    getDashboardCharts: async () => getJson('/api/pilotage/tableau-de-bord-global/charts')
   }
 };

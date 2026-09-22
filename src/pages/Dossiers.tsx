@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { Search, Plus, MoreVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
-import { mockDossiers, statusConfig, DossierComplet } from '@/lib/mock-data';
+import { statusConfig, DossierComplet } from '@/lib/mock-data';
+import { api } from '@/services/api';
 import { classificationConfig } from '@/lib/scoring';
 import { calculerScore } from '@/lib/scoring';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import NouveauDossierModal from '@/components/dossiers/NouveauDossierModal';
 
@@ -37,21 +37,22 @@ export default function Dossiers() {
 
   const load = async () => {
     if (!user) return;
-    const { data } = await supabase.from('dossiers').select('*').order('created_at', { ascending: false });
-    setDbDossiers((data || []).map(dbRowToDossier));
+    try {
+      // Voie de données unique (lot P0) : backend RecovAI authentifié, plus de
+      // fusion silencieuse avec des listes mock non identifiées.
+      const res: any = await api.dossiers.getAll();
+      setDbDossiers(((res?.data) || []).map(dbRowToDossier));
+    } catch {
+      setDbDossiers([]);
+    }
   };
 
   useEffect(() => {
     load();
-    if (!user) return;
-    const ch = supabase.channel('dossiers-rt')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'dossiers' }, () => load())
-      .subscribe();
-    return () => { supabase.removeChannel(ch); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  const all = [...dbDossiers, ...mockDossiers];
+  const all = dbDossiers;
   const filtered = all.filter(d => {
     const matchesSearch = d.debtorName.toLowerCase().includes(searchQuery.toLowerCase()) || d.clientCode.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || d.status === statusFilter;

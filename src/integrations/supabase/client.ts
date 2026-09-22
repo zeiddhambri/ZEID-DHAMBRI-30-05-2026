@@ -19,16 +19,16 @@ const safeFetch = async (url: RequestInfo | URL, options?: RequestInit): Promise
   const urlStr = typeof url === 'string' ? url : (url as URL).toString();
   const isPlaceholder = urlStr.includes("placeholder-co-db.supabase.co");
 
-  // Custom function to generate high-quality mock data for AI / Edge Functions
+  // Réponses de démonstration (données synthétiques, jamais certifiées) servies quand aucun backend n'est configuré.
   const getMockFunctionsResponse = (urlPath: string): any => {
     if (urlPath.includes('extract-leasing')) {
       return {
         contracts: [
           {
-            lessee_name: "Société Tunisienne de Transports",
+            lessee_name: "TRANSPORTS DEMO SARL",
             lessee_id: "MF887222",
-            lessee_email: "contact@sott.tn",
-            lessee_phone: "+216 71 888 999",
+            lessee_email: "contact@transports-demo.example.test",
+            lessee_phone: "+216 30 000 000",
             contract_ref: "LSG-2024-8192",
             contract_status: "active",
             start_date: "2024-01-10",
@@ -60,16 +60,16 @@ const safeFetch = async (url: RequestInfo | URL, options?: RequestInit): Promise
       return {
         dossiers: [
           {
-            debtor_name: "SOCIETE ALPHA SARL",
+            debtor_name: "DEBITEUR ALPHA DEMO",
             debtor_email: "alpha@sarl.tn",
-            debtor_phone: "+216 22 333 444",
+            debtor_phone: "+216 30 000 000",
             amount: 145000,
             due_date: "2024-03-15"
           },
           {
-            debtor_name: "BEN SALEM AHMED",
-            debtor_email: "ahmed.bensalem@gmail.com",
-            debtor_phone: "+216 98 765 432",
+            debtor_name: "PARTICULIER DEMO 01",
+            debtor_email: "particulier.demo@example.test",
+            debtor_phone: "+216 30 000 000",
             amount: 22000,
             due_date: "2024-03-14"
           }
@@ -172,12 +172,12 @@ const safeFetch = async (url: RequestInfo | URL, options?: RequestInit): Promise
           ]
         },
         audit_trail: {
-          logique_decisionnelle: "Application du moteur Bâle III d'aide à la décision du crédit standardisé par RecovAI.",
+          logique_decisionnelle: "Réponse de démonstration — cadre indicatif Bâle III (moteur RecovAI, aide à la décision uniquement, aucune certification).",
           hypotheses_appliquees: [
             "Stabilité résiduelle de l'activité du débiteur.",
             "Valorisation conservatrice à hauteur de 80% du bien immobilier coté."
           ],
-          conformite: "Calibrage Bâle III approuvé",
+          conformite: "Cadre Bâle III indicatif — démonstration, non certifié",
           version_moteur: "1.4.1",
           timestamp_analyse: "2026-05-30"
         }
@@ -328,7 +328,7 @@ const safeFetch = async (url: RequestInfo | URL, options?: RequestInit): Promise
             "Amortissement linéaire des flux futurs estimables.",
             "Taux de recouvrement historique sectoriel de 68% sur le collatéral."
           ],
-          conformite: "Normes IFRS 9 & BCT validées",
+          conformite: "Référentiels IFRS 9 & BCT cités à titre indicatif — démonstration",
           version_moteur: "2.1.0",
           timestamp_analyse: "2026-05-30"
         }

@@ -1,7 +1,7 @@
 // Mock data for the Analytics page
 // Realistic data shaped for a Tunisian banking recovery SaaS (RecovAI)
 
-export const AGENTS = ['Ahmed B.', 'Sami K.', 'Leila M.', 'Nadia T.', 'Karim S.'] as const;
+export const AGENTS = ['Agent Démo 1', 'Agent Démo 2', 'Agent Démo 3', 'Agent Démo 4', 'Karim S.'] as const;
 export type Agent = typeof AGENTS[number];
 
 // ───────────────────────────────────────────────────────────
@@ -58,10 +58,10 @@ export const recoveryByAgent = months.map((m, i) => {
   const trend = i / 11; // upward trend
   return {
     month: m,
-    'Ahmed B.': 22 + trend * 12 + Math.random() * 4,
-    'Sami K.': 18 + trend * 10 + Math.random() * 3,
-    'Leila M.': 28 + trend * 14 + Math.random() * 3,
-    'Nadia T.': 20 + trend * 8 + Math.random() * 4,
+    'Agent Démo 1': 22 + trend * 12 + Math.random() * 4,
+    'Agent Démo 2': 18 + trend * 10 + Math.random() * 3,
+    'Agent Démo 3': 28 + trend * 14 + Math.random() * 3,
+    'Agent Démo 4': 20 + trend * 8 + Math.random() * 4,
     'Karim S.': 15 + trend * 9 + Math.random() * 3,
     Moyenne: 21 + trend * 10,
     Benchmark: 28, // industry average
@@ -83,10 +83,10 @@ export const channelEffectiveness = [
 // SECTION 4 — Agent Performance Table
 // ───────────────────────────────────────────────────────────
 export const agentPerformance = [
-  { agent: 'Leila M.', assigned: 87, totalManaged: 4250000, recovered: 1520000, recoveryRate: 35.8, actions: 1240, avgResponse: 3.2, top: true, sparkline: [22, 25, 28, 27, 30, 32, 31, 34, 33, 35, 36, 35.8] },
-  { agent: 'Ahmed B.', assigned: 72, totalManaged: 3120000, recovered: 980000, recoveryRate: 31.4, actions: 1080, avgResponse: 4.1, top: false, sparkline: [18, 20, 22, 24, 25, 26, 28, 29, 30, 30, 31, 31.4] },
-  { agent: 'Sami K.', assigned: 65, totalManaged: 2840000, recovered: 760000, recoveryRate: 26.8, actions: 920, avgResponse: 5.5, top: false, sparkline: [15, 17, 18, 20, 21, 22, 23, 24, 25, 25, 26, 26.8] },
-  { agent: 'Nadia T.', assigned: 58, totalManaged: 1980000, recovered: 510000, recoveryRate: 25.8, actions: 760, avgResponse: 6.2, top: false, sparkline: [14, 16, 17, 18, 19, 21, 22, 22, 23, 24, 25, 25.8] },
+  { agent: 'Agent Démo 3', assigned: 87, totalManaged: 4250000, recovered: 1520000, recoveryRate: 35.8, actions: 1240, avgResponse: 3.2, top: true, sparkline: [22, 25, 28, 27, 30, 32, 31, 34, 33, 35, 36, 35.8] },
+  { agent: 'Agent Démo 1', assigned: 72, totalManaged: 3120000, recovered: 980000, recoveryRate: 31.4, actions: 1080, avgResponse: 4.1, top: false, sparkline: [18, 20, 22, 24, 25, 26, 28, 29, 30, 30, 31, 31.4] },
+  { agent: 'Agent Démo 2', assigned: 65, totalManaged: 2840000, recovered: 760000, recoveryRate: 26.8, actions: 920, avgResponse: 5.5, top: false, sparkline: [15, 17, 18, 20, 21, 22, 23, 24, 25, 25, 26, 26.8] },
+  { agent: 'Agent Démo 4', assigned: 58, totalManaged: 1980000, recovered: 510000, recoveryRate: 25.8, actions: 760, avgResponse: 6.2, top: false, sparkline: [14, 16, 17, 18, 19, 21, 22, 22, 23, 24, 25, 25.8] },
   { agent: 'Karim S.', assigned: 49, totalManaged: 1560000, recovered: 320000, recoveryRate: 20.5, actions: 590, avgResponse: 7.8, top: false, improvement: true, sparkline: [12, 13, 14, 14, 15, 16, 17, 18, 18, 19, 20, 20.5] },
 ];
 

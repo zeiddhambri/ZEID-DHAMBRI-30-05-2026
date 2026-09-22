@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { requireRole, audit } from '../auth';
+import { validate, createInstitutionSchema } from '../validation';
 
 export interface ServerInstitution {
   id: string;
@@ -633,12 +635,9 @@ router.get('/:id', (req, res) => {
   res.json(inst);
 });
 
-// POST /api/institutions - add custom branch or institution
-router.post('/', (req, res) => {
+// POST /api/institutions - add custom branch or institution (admin, journalisé)
+router.post('/', requireRole('admin'), validate(createInstitutionSchema), (req, res) => {
   const { code, name, fullName, category, legalForm, regulatoryBody, headquarters, branchesCount, specialty } = req.body;
-  if (!code || !name) {
-    return res.status(400).json({ error: 'Code et nom obligatoires' });
-  }
 
   const newInst: ServerInstitution = {
     id: `inst-${Date.now()}`,

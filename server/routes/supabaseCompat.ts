@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { db } from '../db/dataStore';
+import { audit } from '../auth';
 
 const router = Router();
 
@@ -41,6 +42,7 @@ router.all('/:table', (req, res) => {
         inserted.push(record);
       });
       db.save();
+      audit('REST_INSERT_DOSSIER', `Insertion de ${inserted.length} dossier(s) via /rest/v1`, req.auth);
       return res.status(201).json(Array.isArray(payload) ? inserted : inserted[0]);
     }
   }
@@ -128,8 +130,13 @@ router.all('/:table', (req, res) => {
     }
   }
 
-  // Generic fallback
-  res.json({ success: true, table, method });
+  // Lot P0 : fin du faux « success: true » pour les tables non prises en charge
+  // (une écriture qui prétend avoir réussi sans rien persister est un défaut
+  // d'intégrité rédhibitoire en contexte bancaire).
+  res.status(501).json({
+    error: `Table « ${table} » non prise en charge par la couche REST de démonstration. Utilisez les endpoints /api/* dédiés.`,
+    code: 'NOT_IMPLEMENTED'
+  });
 });
 
 export default router;

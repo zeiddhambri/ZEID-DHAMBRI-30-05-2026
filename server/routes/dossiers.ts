@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { db } from '../db/dataStore';
+import { audit, requireRole } from '../auth';
+import { validate, createDossierSchema, updateDossierSchema } from '../validation';
 
 const router = Router();
 
@@ -78,12 +80,8 @@ router.get('/:id', (req, res) => {
 });
 
 // POST create new dossier
-router.post('/', (req, res) => {
+router.post('/', validate(createDossierSchema), (req, res) => {
   const { debtor_name, amount, debtor_email, debtor_phone, due_date, assigned_to, management_level, status, notes, portfolio, institution, branch } = req.body;
-
-  if (!debtor_name) {
-    return res.status(400).json({ error: 'Le nom du débiteur est obligatoire' });
-  }
 
   const dossiers = db.getDossiers();
   const year = new Date().getFullYear();
@@ -92,7 +90,7 @@ router.post('/', (req, res) => {
 
   const newDossier = {
     id: String(Date.now()),
-    user_id: req.body.user_id || 'system-user',
+    user_id: req.auth?.sub || 'system-user',
     client_code,
     debtor_name: debtor_name.trim(),
     debtor_email: debtor_email || null,
@@ -116,22 +114,14 @@ router.post('/', (req, res) => {
   dossiers.unshift(newDossier);
   db.save();
 
-  // Log audit
-  const auditLogs = db.getAuditLogs();
-  auditLogs.unshift({
-    id: `aud-${Date.now()}`,
-    action: 'CREATE_DOSSIER',
-    dossierId: newDossier.id,
-    details: `Création du dossier ${newDossier.client_code} (${newDossier.debtor_name})`,
-    timestamp: new Date().toISOString()
-  });
-  db.save();
+  // Log audit (auteur issu du jeton d'authentification)
+  audit('CREATE_DOSSIER', `Création du dossier ${newDossier.client_code} (${newDossier.debtor_name}) pour ${Number(newDossier.amount).toLocaleString('fr-TN')} TND`, req.auth);
 
   res.status(201).json(newDossier);
 });
 
 // PATCH / PUT update dossier
-router.patch('/:id', (req, res) => {
+function applyDossierPatch(req: any, res: any) {
   const dossiers = db.getDossiers();
   const index = dossiers.findIndex(d => String(d.id) === String(req.params.id) || d.client_code === req.params.id);
 
@@ -140,41 +130,30 @@ router.patch('/:id', (req, res) => {
   }
 
   const existing = dossiers[index];
+  const changes = { ...req.body };
+  delete changes.user_id;
+  delete changes.id;
   const updated = {
     ...existing,
-    ...req.body,
+    ...changes,
     updated_at: new Date().toISOString()
   };
 
   dossiers[index] = updated;
   db.save();
 
-  res.json(updated);
-});
-
-router.put('/:id', (req, res) => {
-  const dossiers = db.getDossiers();
-  const index = dossiers.findIndex(d => String(d.id) === String(req.params.id) || d.client_code === req.params.id);
-
-  if (index === -1) {
-    return res.status(404).json({ error: 'Dossier introuvable' });
-  }
-
-  const existing = dossiers[index];
-  const updated = {
-    ...existing,
-    ...req.body,
-    updated_at: new Date().toISOString()
-  };
-
-  dossiers[index] = updated;
-  db.save();
+  // Journal : champs modifiés par l'auteur authentifié (P1 : différentiel complet en base).
+  const changedFields = Object.keys(changes).filter(k => JSON.stringify(existing[k]) !== JSON.stringify(updated[k]));
+  audit('UPDATE_DOSSIER', `Modification du dossier ${existing.client_code} — champs: ${changedFields.join(', ') || 'aucun'}`, req.auth);
 
   res.json(updated);
-});
+}
 
-// DELETE dossier
-router.delete('/:id', (req, res) => {
+router.patch('/:id', validate(updateDossierSchema), applyDossierPatch);
+router.put('/:id', validate(updateDossierSchema), applyDossierPatch);
+
+// DELETE dossier — réservé manager/admin (suppression = acte sensible en recouvrement)
+router.delete('/:id', requireRole('admin', 'manager'), (req, res) => {
   const dossiers = db.getDossiers();
   const index = dossiers.findIndex(d => String(d.id) === String(req.params.id) || d.client_code === req.params.id);
 
@@ -184,6 +163,8 @@ router.delete('/:id', (req, res) => {
 
   const deleted = dossiers.splice(index, 1)[0];
   db.save();
+
+  audit('DELETE_DOSSIER', `Suppression du dossier ${deleted.client_code} (${deleted.debtor_name})`, req.auth);
 
   res.json({ message: 'Dossier supprimé avec succès', deletedId: deleted.id });
 });

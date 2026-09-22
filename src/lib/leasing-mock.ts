@@ -209,7 +209,7 @@ export const NOTIFICATION_CONFIG: Record<NotificationType, { label: string; seve
   broken_promise:    { label: 'Promesse non tenue',          severity: 'critical' },
 };
 
-export const LEASING_AGENTS = ['Amel Ben Ali', 'Sami K.', 'Leila M.', 'Karim S.', 'Nadia T.', 'Ahmed B.'];
+export const LEASING_AGENTS = ['Amel Ben Ali', 'Agent Démo 2', 'Agent Démo 3', 'Karim S.', 'Agent Démo 4', 'Agent Démo 1'];
 
 // ───────── Helpers ─────────
 const today = () => new Date();
@@ -334,14 +334,14 @@ export const leasingContracts: LeasingContract[] = [
   // ───── 4 active healthy ─────
   {
     id: 'LEAS-2024-0001',
-    lessee: buildLessee('D-145', 'SOCIETE ALPHA SARL', '12 Rue de la République', 'Tunis', '1000', { siren: '0123456789', contact: 'M. Slim Bargaoui', email: 'contact@alpha-sarl.tn', phone: '+216 71 222 333' }),
+    lessee: buildLessee('D-145', 'DEBITEUR ALPHA DEMO', '12 Rue de la République', 'Tunis', '1000', { siren: '0123456789', contact: 'M. Contact Demo 1', email: 'contact@demo-sarl.example.test', phone: '+216 30 000 000' }),
     lessor: 'BANQUE RECOVAI',
     status: 'active',
     startDate: '2023-06-01', endDate: '2027-06-01', firstDueDate: '2023-07-01',
     paymentFrequency: 'monthly',
     asset: { type: 'vehicle', description: 'Renault Trafic L2H1 utilitaire', brand: 'Renault', model: 'Trafic L2H1', serial: 'VF1FL000123456789', acquisitionValue: 95000, residualValue: 12000 },
     financials: { monthlyRent: 2350, interestRate: 7.5, deposit: 9500, totalCapital: 95000, remainingCapital: 68000, terminationFormula: 'capital_plus_3rents' },
-    guarantor: { name: 'M. Slim Bargaoui', type: 'personal', guaranteedAmount: 30000, contact: '+216 98 111 222' },
+    guarantor: { name: 'M. Contact Demo 1', type: 'personal', guaranteedAmount: 30000, contact: '+216 30 000 000' },
     insurance: { provider: 'STAR Assurances', policyNumber: 'STAR-2023-AUTO-9821', expiryDate: '2025-06-01', coverageAmount: 95000 },
     riskScore: 22,
     agent: 'Amel Ben Ali',
@@ -362,7 +362,7 @@ export const leasingContracts: LeasingContract[] = [
     guarantor: { name: 'BIO PHARMA HOLDING', type: 'corporate', guaranteedAmount: 200000 },
     insurance: { provider: 'COMAR', policyNumber: 'COMAR-2023-IND-1142', expiryDate: '2025-01-15', coverageAmount: 500000 },
     riskScore: 18,
-    agent: 'Sami K.',
+    agent: 'Agent Démo 2',
     installments: seedInstallments({ start: '2023-02-15', rent: 9200, rate: 6.8, months: 60, capital: 480000, paidUpTo: 14 }),
     actions: [],
     documents: [baseDoc('ld3', 'Contrat signé.pdf', 'Contrat', 460, 'signed'), baseDoc('ld4', 'PV mise en service.pdf', 'Technique', 440, 'filed')],
@@ -370,7 +370,7 @@ export const leasingContracts: LeasingContract[] = [
   },
   {
     id: 'LEAS-2024-0003',
-    lessee: buildLessee('D-318', 'GLOBAL TECH TUNISIE', '15 Rue du Lac', 'Tunis', '1053', { siren: '0987654321', contact: 'Mme Nadia Trabelsi', email: 'nadia@globaltech.tn' }),
+    lessee: buildLessee('D-318', 'TECH GLOBAL DEMO', '15 Rue du Lac', 'Tunis', '1053', { siren: '0987654321', contact: 'Mme Contact Demo 2', email: 'nadia@globaltech.tn' }),
     lessor: 'BANQUE RECOVAI',
     status: 'active',
     startDate: '2024-01-10', endDate: '2027-01-10', firstDueDate: '2024-02-10',
@@ -380,7 +380,7 @@ export const leasingContracts: LeasingContract[] = [
     guarantor: undefined,
     insurance: { provider: 'GAT Assurances', policyNumber: 'GAT-2024-IT-007', expiryDate: '2025-01-10', coverageAmount: 220000 },
     riskScore: 35,
-    agent: 'Leila M.',
+    agent: 'Agent Démo 3',
     installments: seedInstallments({ start: '2024-02-10', rent: 6800, rate: 7.2, months: 36, capital: 220000, paidUpTo: 3 }),
     actions: [],
     documents: [baseDoc('ld5', 'Contrat signé.pdf', 'Contrat', 105, 'signed')],
@@ -408,7 +408,7 @@ export const leasingContracts: LeasingContract[] = [
   // ───── 2 light late (<30j) ─────
   {
     id: 'LEAS-2024-0005',
-    lessee: buildLessee('D-422', 'KARIM ENTERPRISES', '8 Rue Ibn Khaldoun', 'Sfax', '3000', { siren: '5566778899', contact: 'M. Karim Jelassi' }),
+    lessee: buildLessee('D-422', 'ENTREPRISE K DEMO', '8 Rue Ibn Khaldoun', 'Sfax', '3000', { siren: '5566778899', contact: 'M. Karim Jelassi' }),
     lessor: 'BANQUE RECOVAI',
     status: 'late',
     startDate: '2023-04-01', endDate: '2026-04-01', firstDueDate: '2023-05-01',
@@ -418,11 +418,11 @@ export const leasingContracts: LeasingContract[] = [
     guarantor: { name: 'M. Karim Jelassi', type: 'personal', guaranteedAmount: 25000 },
     insurance: { provider: 'COMAR', policyNumber: 'COMAR-2023-EQ-882', expiryDate: '2025-04-01', coverageAmount: 78000 },
     riskScore: 48,
-    agent: 'Nadia T.',
+    agent: 'Agent Démo 4',
     installments: seedInstallments({ start: '2023-05-01', rent: 2650, rate: 7.8, months: 36, capital: 78000, paidUpTo: 11, lateCount: 1 }),
     actions: [
-      { id: 'a1', date: new Date(Date.now() - 5 * 86_400_000).toISOString().slice(0, 10), channel: 'sms', outcome: 'no_response', agent: 'Nadia T.' },
-      { id: 'a2', date: new Date(Date.now() - 2 * 86_400_000).toISOString().slice(0, 10), channel: 'call', outcome: 'promise', agent: 'Nadia T.', notes: 'Promet de régulariser sous 7 jours.' },
+      { id: 'a1', date: new Date(Date.now() - 5 * 86_400_000).toISOString().slice(0, 10), channel: 'sms', outcome: 'no_response', agent: 'Agent Démo 4' },
+      { id: 'a2', date: new Date(Date.now() - 2 * 86_400_000).toISOString().slice(0, 10), channel: 'call', outcome: 'promise', agent: 'Agent Démo 4', notes: 'Promet de régulariser sous 7 jours.' },
     ],
     documents: [baseDoc('ld8', 'Contrat signé.pdf', 'Contrat', 380, 'signed')],
     notifications: [{ id: 'n2', type: 'overdue_d8', severity: 'warning', date: new Date().toISOString().slice(0, 10), message: 'Loyer en retard de 12 jours', read: false }],
@@ -439,10 +439,10 @@ export const leasingContracts: LeasingContract[] = [
     guarantor: undefined,
     insurance: { provider: 'GAT', policyNumber: 'GAT-2023-EQ-118', expiryDate: '2024-09-01', coverageAmount: 42000 },
     riskScore: 55,
-    agent: 'Leila M.',
+    agent: 'Agent Démo 3',
     installments: seedInstallments({ start: '2023-10-01', rent: 1380, rate: 8.0, months: 36, capital: 42000, paidUpTo: 6, partialOnLast: true }),
     actions: [
-      { id: 'a3', date: new Date(Date.now() - 18 * 86_400_000).toISOString().slice(0, 10), channel: 'whatsapp', outcome: 'partial_payment', agent: 'Leila M.', notes: '40% versés, solde sous 15j.' },
+      { id: 'a3', date: new Date(Date.now() - 18 * 86_400_000).toISOString().slice(0, 10), channel: 'whatsapp', outcome: 'partial_payment', agent: 'Agent Démo 3', notes: '40% versés, solde sous 15j.' },
     ],
     documents: [baseDoc('ld9', 'Contrat signé.pdf', 'Contrat', 220, 'signed')],
     notifications: [
@@ -493,12 +493,12 @@ export const leasingContracts: LeasingContract[] = [
     guarantor: { name: 'CONSTRUCTION GROUP HOLDING', type: 'corporate', guaranteedAmount: 150000 },
     insurance: { provider: 'COMAR', policyNumber: 'COMAR-2022-BTP-552', expiryDate: '2024-11-01', coverageAmount: 320000 },
     riskScore: 82,
-    agent: 'Sami K.',
+    agent: 'Agent Démo 2',
     installments: seedInstallments({ start: '2022-12-01', rent: 6850, rate: 7.4, months: 60, capital: 320000, paidUpTo: 14, lateCount: 4 }),
     actions: [
-      { id: 'a8', date: new Date(Date.now() - 90 * 86_400_000).toISOString().slice(0, 10), channel: 'email',  outcome: 'no_response', agent: 'Sami K.' },
-      { id: 'a9', date: new Date(Date.now() - 70 * 86_400_000).toISOString().slice(0, 10), channel: 'call',   outcome: 'callback',    agent: 'Sami K.' },
-      { id: 'a10', date: new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10), channel: 'letter', outcome: 'no_response', agent: 'Sami K.', notes: 'Mise en demeure leasing envoyée LRAR.' },
+      { id: 'a8', date: new Date(Date.now() - 90 * 86_400_000).toISOString().slice(0, 10), channel: 'email',  outcome: 'no_response', agent: 'Agent Démo 2' },
+      { id: 'a9', date: new Date(Date.now() - 70 * 86_400_000).toISOString().slice(0, 10), channel: 'call',   outcome: 'callback',    agent: 'Agent Démo 2' },
+      { id: 'a10', date: new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10), channel: 'letter', outcome: 'no_response', agent: 'Agent Démo 2', notes: 'Mise en demeure leasing envoyée LRAR.' },
     ],
     documents: [baseDoc('ld12', 'Contrat signé.pdf', 'Contrat', 530, 'signed'), baseDoc('ld13', 'Mise en demeure leasing.pdf', 'Lettre', 28, 'sent')],
     notifications: [{ id: 'n7', type: 'overdue_d60', severity: 'critical', date: new Date().toISOString().slice(0, 10), message: '4 loyers impayés · escalade contentieux à envisager', read: false }],
@@ -542,7 +542,7 @@ export const leasingContracts: LeasingContract[] = [
   // ───── 2 litigation ─────
   {
     id: 'LEAS-2024-0010',
-    lessee: buildLessee('D-201', 'BEN SALEM AHMED', '4 Avenue Habib Bourguiba', 'Sousse', '4000', { email: 'ahmed.bensalem@gmail.com' }),
+    lessee: buildLessee('D-201', 'PARTICULIER DEMO 01', '4 Avenue Habib Bourguiba', 'Sousse', '4000', { email: 'particulier.demo@example.test' }),
     lessor: 'BANQUE RECOVAI',
     status: 'litigation',
     startDate: '2021-08-01', endDate: '2025-08-01', firstDueDate: '2021-09-01',
@@ -552,11 +552,11 @@ export const leasingContracts: LeasingContract[] = [
     guarantor: undefined,
     insurance: { provider: 'STAR Assurances', policyNumber: 'STAR-2021-AUTO-441', expiryDate: '2024-08-01', coverageAmount: 58000 },
     riskScore: 91,
-    agent: 'Sami K.',
+    agent: 'Agent Démo 2',
     installments: seedInstallments({ start: '2021-09-01', rent: 1280, rate: 8.2, months: 48, capital: 58000, paidUpTo: 28, lateCount: 6 }),
     actions: [
-      { id: 'a12', date: new Date(Date.now() - 200 * 86_400_000).toISOString().slice(0, 10), channel: 'letter', outcome: 'no_response', agent: 'Sami K.', notes: 'Mise en demeure LRAR.' },
-      { id: 'a13', date: new Date(Date.now() - 150 * 86_400_000).toISOString().slice(0, 10), channel: 'visit',  outcome: 'refused',     agent: 'Sami K.' },
+      { id: 'a12', date: new Date(Date.now() - 200 * 86_400_000).toISOString().slice(0, 10), channel: 'letter', outcome: 'no_response', agent: 'Agent Démo 2', notes: 'Mise en demeure LRAR.' },
+      { id: 'a13', date: new Date(Date.now() - 150 * 86_400_000).toISOString().slice(0, 10), channel: 'visit',  outcome: 'refused',     agent: 'Agent Démo 2' },
     ],
     documents: [baseDoc('ld17', 'Contrat signé.pdf', 'Contrat', 990, 'signed'), baseDoc('ld18', 'Mise en demeure.pdf', 'Lettre', 200, 'sent')],
     notifications: [{ id: 'n9', type: 'overdue_d60', severity: 'critical', date: new Date().toISOString().slice(0, 10), message: 'Dossier transféré au contentieux', read: true }],
@@ -564,7 +564,7 @@ export const leasingContracts: LeasingContract[] = [
   },
   {
     id: 'LEAS-2024-0011',
-    lessee: buildLessee('D-098', 'STAR LOGISTIQUE', '20 Rue de Marseille', 'Tunis', '1002', { siren: '6677889900' }),
+    lessee: buildLessee('D-098', 'ETOILE LOGISTIQUE DEMO', '20 Rue de Marseille', 'Tunis', '1002', { siren: '6677889900' }),
     lessor: 'BANQUE RECOVAI',
     status: 'litigation',
     startDate: '2020-03-01', endDate: '2025-03-01', firstDueDate: '2020-04-01',
@@ -585,7 +585,7 @@ export const leasingContracts: LeasingContract[] = [
   // ───── 1 fully paid ─────
   {
     id: 'LEAS-2023-0012',
-    lessee: buildLessee('D-501', 'MEDITERANEE INVEST', '3 Avenue de Carthage', 'Tunis', '1001', { siren: '1122334455' }),
+    lessee: buildLessee('D-501', 'FONDS MARINA DEMO', '3 Avenue de Carthage', 'Tunis', '1001', { siren: '1122334455' }),
     lessor: 'BANQUE RECOVAI',
     status: 'closed_paid',
     startDate: '2020-01-01', endDate: '2024-01-01', firstDueDate: '2020-02-01',
@@ -595,7 +595,7 @@ export const leasingContracts: LeasingContract[] = [
     guarantor: undefined,
     insurance: { provider: 'STAR Assurances', policyNumber: 'STAR-2020-IT-007', expiryDate: '2024-01-01', coverageAmount: 165000 },
     riskScore: 5,
-    agent: 'Leila M.',
+    agent: 'Agent Démo 3',
     installments: seedInstallments({ start: '2020-02-01', rent: 3700, rate: 7.0, months: 48, capital: 165000, paidUpTo: 48 }),
     actions: [],
     documents: [baseDoc('ld20', 'Contrat signé.pdf', 'Contrat', 1550, 'signed'), baseDoc('ld21', 'Quittance finale.pdf', 'Quittance', 110, 'filed')],

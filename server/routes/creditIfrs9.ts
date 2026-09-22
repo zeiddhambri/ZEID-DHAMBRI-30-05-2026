@@ -1,13 +1,15 @@
 import { Router } from 'express';
 import { db } from '../db/dataStore';
 import { GoogleGenAI } from '@google/genai';
+import { audit } from '../auth';
+import { validate, eclRequestSchema } from '../validation';
 
 const router = Router();
 
 // ==========================================
 // 1. QUANTITATIVE IFRS 9 ECL ENGINE
 // ==========================================
-router.post('/calculate-ecl', (req, res) => {
+router.post('/calculate-ecl', validate(eclRequestSchema), (req, res) => {
   const {
     nominal = 100000,
     interestRate = 8.5,
@@ -64,8 +66,12 @@ router.post('/calculate-ecl', (req, res) => {
   const discountFactor = 1 / Math.pow(1 + (Number(interestRate) / 100), (Number(durationMonths) / 24));
   const eclAmount = Math.round(nom * applicablePd * conservativeLgd * discountFactor);
 
+  audit('ECL_COMPUTED', `Calcul ECL IFRS 9 demandé — nominal ${nom.toLocaleString('fr-TN')} TND, retard ${overdueDays} j, scénario ${macroScenario}, bucket retenu`, req.auth);
+
   res.json({
     calculationDate: new Date().toISOString(),
+    decisionSupportOnly: true,
+    disclaimer: 'Estimation d’aide à la décision fondée sur des paramètres de démonstration — ne remplace ni le calibrage interne de l’établissement, ni le contrôle de l’auditeur.',
     input: {
       nominal: nom,
       collateralValue: colVal,
@@ -160,9 +166,12 @@ Réponds en français avec rigueur technique bancaire.`;
     }
   }
 
-  // Fallback realistic response
+  // Fallback honnête : texte de démonstration explicitement marqué.
   res.json({
-    analysis: `### Note de Synthèse du Comité des Engagements
+    demoFallback: true,
+    analysis: `> ⚠️ **Texte de démonstration** — aucun modèle d'analyse n'a été exécuté (clé GEMINI_API_KEY non configurée). Outil d'aide à la décision uniquement.
+
+### Note de Synthèse du Comité des Engagements
 
 **1. Avis & Recommandation**:
 - **Décision Préconisée**: **Acceptation Conditionnelle** (Indice de confiance: 92%)
