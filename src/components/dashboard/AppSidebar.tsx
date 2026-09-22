@@ -105,13 +105,13 @@ const sidebarGroups: SidebarGroup[] = [
   },
   {
     id: 'administration',
-    title: 'Administration',
+    title: 'Administration & Core Banking',
     icon: Settings,
     items: [
+      { name: 'Connecteurs Bancaires & BCT', icon: Cable, path: '/integrations-bancaires' },
       { name: 'Utilisateurs & rôles', icon: Users, path: '/settings', tab: 'utilisateurs' },
       { name: 'Institutions / agences', icon: Building, path: '/settings', tab: 'institutions' },
       { name: 'Paramètres métier', icon: Settings, path: '/settings' },
-      { name: 'Intégrations', icon: Cable, path: '/settings', tab: 'integrations' },
       { name: 'Audit logs', icon: Database, path: '/settings', tab: 'audit' },
       { name: 'Sécurité', icon: KeyRound, path: '/settings', tab: 'securite' }
     ]

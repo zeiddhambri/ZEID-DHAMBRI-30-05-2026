@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Users, Shield, UserCog, Search, CheckCircle2, Scale, Zap, Bell, AlertTriangle, FileWarning, Sun, Moon, Monitor, Palette, Landmark, SlidersHorizontal } from 'lucide-react';
+import { Users, Shield, UserCog, Search, CheckCircle2, Scale, Zap, Bell, AlertTriangle, FileWarning, Sun, Moon, Monitor, Palette, Landmark, SlidersHorizontal, Cable } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { useTheme } from '@/contexts/ThemeContext';
 import InstitutionsManagement from '@/components/settings/InstitutionsManagement';
+import IntegrationsBancaires from '@/pages/IntegrationsBancaires';
 
 interface UserProfile {
   uid: string;
@@ -114,6 +115,19 @@ export default function Settings() {
           <Palette size={15} className={activeTab === 'apparence' ? 'text-amber-500' : ''} />
           <span>Thème & Apparence</span>
         </button>
+
+        <button
+          onClick={() => handleTabClick('integrations')}
+          className={cn(
+            "flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all",
+            activeTab === 'integrations'
+              ? "bg-white dark:bg-slate-800 text-navy dark:text-white shadow-sm"
+              : "text-muted-foreground hover:text-navy dark:hover:text-white"
+          )}
+        >
+          <Cable size={15} className={activeTab === 'integrations' ? 'text-indigo-600 dark:text-indigo-400' : ''} />
+          <span>Connecteurs Bancaires & BCT</span>
+        </button>
       </div>
 
       {successMessage && (
@@ -126,6 +140,11 @@ export default function Settings() {
           <CheckCircle2 size={18} />
           {successMessage}
         </motion.div>
+      )}
+
+      {/* TAB CONTENT: Integrations */}
+      {activeTab === 'integrations' && (
+        <IntegrationsBancaires />
       )}
 
       {/* TAB CONTENT: Institutions */}
