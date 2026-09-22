@@ -14,6 +14,8 @@ import creditIfrs9Router from './server/routes/creditIfrs9';
 import clientsRouter from './server/routes/clients';
 import pilotageRouter from './server/routes/pilotage';
 import institutionsRouter from './server/routes/institutions';
+import integrationsRouter from './server/routes/integrations';
+import enterpriseSecurityRouter from './server/routes/enterpriseSecurity';
 import supabaseCompatRouter from './server/routes/supabaseCompat';
 import exportRouter from './server/routes/export';
 
@@ -44,7 +46,6 @@ export async function createApp(): Promise<import('express').Express> {
   // --- Routes publiques (authentification + supervision minimale) ---
   app.use('/api/auth', authRouter);
   app.use('/api', healthRouter);
-
   // --- Routes métier protégées : jeton Bearer obligatoire + RBAC par rôle ---
   app.use('/api/audit', auditRouter);
   app.use('/api/dossiers', requireAuth, dossiersRouter);
@@ -55,6 +56,8 @@ export async function createApp(): Promise<import('express').Express> {
   app.use('/api/clients', requireAuth, clientsRouter);
   app.use('/api/pilotage', requireAuth, pilotageRouter);
   app.use('/api/institutions', requireAuth, institutionsRouter);
+  app.use('/api/integrations', requireAuth, integrationsRouter);
+  app.use('/api/enterprise', requireAuth, enterpriseSecurityRouter);
   app.use('/api/export', requireAuth, exportRouter);
 
   // Supabase PostgREST compatibility layer — protégée également.

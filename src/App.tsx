@@ -43,6 +43,8 @@ import IndicateursContentieux from "./pages/pilotage/IndicateursContentieux";
 import Rapports from "./pages/pilotage/Rapports";
 import CreditIfrs9 from "./pages/CreditIfrs9";
 import Client360 from "./pages/Client360";
+import IntegrationsBancaires from "./pages/IntegrationsBancaires";
+import EnterpriseSecurity from "./pages/EnterpriseSecurity";
 
 const queryClient = new QueryClient();
 
@@ -93,6 +95,9 @@ const App = () => (
               <Route path="/portefeuilles/leasing" element={<Leasing />} />
               <Route path="/credit-ifrs9" element={<Navigate to="/credit-ifrs9/nouveau" replace />} />
               <Route path="/credit-ifrs9/:activeTab" element={<CreditIfrs9 />} />
+              <Route path="/integrations-bancaires" element={<IntegrationsBancaires />} />
+              <Route path="/integrations" element={<Navigate to="/integrations-bancaires" replace />} />
+              <Route path="/enterprise-security" element={<EnterpriseSecurity />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
             </Route>
