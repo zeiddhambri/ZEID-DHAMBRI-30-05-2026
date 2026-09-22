@@ -13,6 +13,7 @@ import clientsRouter from './server/routes/clients';
 import pilotageRouter from './server/routes/pilotage';
 import institutionsRouter from './server/routes/institutions';
 import integrationsRouter from './server/routes/integrations';
+import enterpriseSecurityRouter from './server/routes/enterpriseSecurity';
 import supabaseCompatRouter from './server/routes/supabaseCompat';
 
 async function startServer() {
@@ -45,6 +46,7 @@ async function startServer() {
   app.use('/api/pilotage', pilotageRouter);
   app.use('/api/institutions', institutionsRouter);
   app.use('/api/integrations', integrationsRouter);
+  app.use('/api/enterprise', enterpriseSecurityRouter);
 
   // Supabase PostgREST compatibility layer (enables supabase.from() to hit the backend directly)
   app.use('/rest/v1', supabaseCompatRouter);

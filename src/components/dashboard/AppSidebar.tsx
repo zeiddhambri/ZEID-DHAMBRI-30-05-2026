@@ -113,7 +113,7 @@ const sidebarGroups: SidebarGroup[] = [
       { name: 'Institutions / agences', icon: Building, path: '/settings', tab: 'institutions' },
       { name: 'Paramètres métier', icon: Settings, path: '/settings' },
       { name: 'Audit logs', icon: Database, path: '/settings', tab: 'audit' },
-      { name: 'Sécurité', icon: KeyRound, path: '/settings', tab: 'securite' }
+      { name: 'Sécurité & SGBD Bancaire', icon: KeyRound, path: '/enterprise-security' }
     ]
   }
 ];

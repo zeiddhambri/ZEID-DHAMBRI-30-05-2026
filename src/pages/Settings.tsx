@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Users, Shield, UserCog, Search, CheckCircle2, Scale, Zap, Bell, AlertTriangle, FileWarning, Sun, Moon, Monitor, Palette, Landmark, SlidersHorizontal, Cable } from 'lucide-react';
+import { Users, Shield, UserCog, Search, CheckCircle2, Scale, Zap, Bell, AlertTriangle, FileWarning, Sun, Moon, Monitor, Palette, Landmark, SlidersHorizontal, Cable, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { useTheme } from '@/contexts/ThemeContext';
 import InstitutionsManagement from '@/components/settings/InstitutionsManagement';
 import IntegrationsBancaires from '@/pages/IntegrationsBancaires';
+import EnterpriseSecurity from '@/pages/EnterpriseSecurity';
 
 interface UserProfile {
   uid: string;
@@ -128,6 +129,19 @@ export default function Settings() {
           <Cable size={15} className={activeTab === 'integrations' ? 'text-indigo-600 dark:text-indigo-400' : ''} />
           <span>Connecteurs Bancaires & BCT</span>
         </button>
+
+        <button
+          onClick={() => handleTabClick('securite')}
+          className={cn(
+            "flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all",
+            activeTab === 'securite'
+              ? "bg-white dark:bg-slate-800 text-navy dark:text-white shadow-sm"
+              : "text-muted-foreground hover:text-navy dark:hover:text-white"
+          )}
+        >
+          <Lock size={15} className={activeTab === 'securite' ? 'text-indigo-600 dark:text-indigo-400' : ''} />
+          <span>Sécurité & SGBD Bancaire</span>
+        </button>
       </div>
 
       {successMessage && (
@@ -140,6 +154,11 @@ export default function Settings() {
           <CheckCircle2 size={18} />
           {successMessage}
         </motion.div>
+      )}
+
+      {/* TAB CONTENT: Sécurité & SGBD */}
+      {activeTab === 'securite' && (
+        <EnterpriseSecurity />
       )}
 
       {/* TAB CONTENT: Integrations */}
