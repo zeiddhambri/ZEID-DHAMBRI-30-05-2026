@@ -1,8 +1,10 @@
-import { useState } from 'react';
-import { Users, Shield, UserCog, Search, CheckCircle2, Scale, Zap, Bell, AlertTriangle, FileWarning, Sun, Moon, Monitor, Palette } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { Users, Shield, UserCog, Search, CheckCircle2, Scale, Zap, Bell, AlertTriangle, FileWarning, Sun, Moon, Monitor, Palette, Landmark, SlidersHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { useTheme } from '@/contexts/ThemeContext';
+import InstitutionsManagement from '@/components/settings/InstitutionsManagement';
 
 interface UserProfile {
   uid: string;
@@ -30,6 +32,9 @@ const mockUsers: UserProfile[] = [
 
 export default function Settings() {
   const { theme, resolvedTheme, setTheme } = useTheme();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'institutions';
+
   const [searchTerm, setSearchTerm] = useState('');
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -43,13 +48,72 @@ export default function Settings() {
     setTimeout(() => setSuccessMessage(null), 3000);
   };
 
+  const handleTabClick = (tab: string) => {
+    setSearchParams({ tab });
+  };
+
   return (
     <div className="space-y-8 pb-12">
-      <div className="flex justify-between items-start">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-black text-navy dark:text-white tracking-tight font-syne">Paramètres d'administration</h1>
-          <p className="text-muted-foreground mt-1">Gérez les utilisateurs, l'apparence visuelle et les règles de votre organisation.</p>
+          <p className="text-muted-foreground mt-1">Gérez le référentiel des institutions, les utilisateurs, l'apparence et les règles d'escalade.</p>
         </div>
+      </div>
+
+      {/* Navigation Tabs */}
+      <div className="flex flex-wrap gap-2 p-1.5 bg-slate-100 dark:bg-slate-900 rounded-2xl border border-border w-fit">
+        <button
+          onClick={() => handleTabClick('institutions')}
+          className={cn(
+            "flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all",
+            activeTab === 'institutions'
+              ? "bg-white dark:bg-slate-800 text-navy dark:text-white shadow-sm"
+              : "text-muted-foreground hover:text-navy dark:hover:text-white"
+          )}
+        >
+          <Landmark size={15} className={activeTab === 'institutions' ? 'text-indigo-600 dark:text-indigo-400' : ''} />
+          <span>Institutions & IMF</span>
+        </button>
+
+        <button
+          onClick={() => handleTabClick('utilisateurs')}
+          className={cn(
+            "flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all",
+            activeTab === 'utilisateurs'
+              ? "bg-white dark:bg-slate-800 text-navy dark:text-white shadow-sm"
+              : "text-muted-foreground hover:text-navy dark:hover:text-white"
+          )}
+        >
+          <Users size={15} className={activeTab === 'utilisateurs' ? 'text-sky' : ''} />
+          <span>Utilisateurs & Rôles</span>
+        </button>
+
+        <button
+          onClick={() => handleTabClick('declencheurs')}
+          className={cn(
+            "flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all",
+            activeTab === 'declencheurs'
+              ? "bg-white dark:bg-slate-800 text-navy dark:text-white shadow-sm"
+              : "text-muted-foreground hover:text-navy dark:hover:text-white"
+          )}
+        >
+          <Zap size={15} className={activeTab === 'declencheurs' ? 'text-[hsl(var(--crimson))]' : ''} />
+          <span>Déclencheurs & Automatisation</span>
+        </button>
+
+        <button
+          onClick={() => handleTabClick('apparence')}
+          className={cn(
+            "flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all",
+            activeTab === 'apparence'
+              ? "bg-white dark:bg-slate-800 text-navy dark:text-white shadow-sm"
+              : "text-muted-foreground hover:text-navy dark:hover:text-white"
+          )}
+        >
+          <Palette size={15} className={activeTab === 'apparence' ? 'text-amber-500' : ''} />
+          <span>Thème & Apparence</span>
+        </button>
       </div>
 
       {successMessage && (
@@ -64,211 +128,226 @@ export default function Settings() {
         </motion.div>
       )}
 
-      {/* App Theme & Display Preferences Card */}
-      <div className="bg-card rounded-3xl p-6 sm:p-8 shadow-sm border border-border">
-        <div className="flex items-center justify-between gap-4 mb-6 pb-4 border-b border-border">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-sky/10 dark:bg-sky/20 flex items-center justify-center text-sky">
-              <Palette size={20} />
+      {/* TAB CONTENT: Institutions */}
+      {activeTab === 'institutions' && (
+        <InstitutionsManagement />
+      )}
+
+      {/* TAB CONTENT: Apparence */}
+      {activeTab === 'apparence' && (
+        <div className="bg-card rounded-3xl p-6 sm:p-8 shadow-sm border border-border">
+          <div className="flex items-center justify-between gap-4 mb-6 pb-4 border-b border-border">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-sky/10 dark:bg-sky/20 flex items-center justify-center text-sky">
+                <Palette size={20} />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-navy dark:text-white font-syne">Thème & Expérience Visuelle</h2>
+                <p className="text-xs text-muted-foreground">Personnalisez le mode d'affichage pour une ergonomie optimale de jour comme de nuit.</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-lg font-bold text-navy dark:text-white font-syne">Thème & Expérience Visuelle</h2>
-              <p className="text-xs text-muted-foreground">Personnalisez le mode d'affichage pour une ergonomie optimale de jour comme de nuit.</p>
-            </div>
+            <span className="text-xs font-semibold px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+              Actif : {resolvedTheme === 'dark' ? '🌙 Mode Sombre' : '☀️ Mode Clair'}
+            </span>
           </div>
-          <span className="text-xs font-semibold px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-            Actif : {resolvedTheme === 'dark' ? '🌙 Mode Sombre' : '☀️ Mode Clair'}
-          </span>
-        </div>
 
-        <div className="grid sm:grid-cols-3 gap-4">
-          <button
-            onClick={() => setTheme('light')}
-            className={cn(
-              "p-4 rounded-2xl border text-left transition-all relative group flex flex-col justify-between h-36",
-              theme === 'light'
-                ? "border-sky bg-sky/5 ring-2 ring-sky/20 shadow-sm"
-                : "border-border bg-paper hover:bg-slate-50 dark:hover:bg-slate-800/50"
-            )}
-          >
-            <div className="flex items-center justify-between w-full">
-              <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-200">
-                <Sun size={18} />
-              </div>
-              {theme === 'light' && (
-                <CheckCircle2 size={18} className="text-sky" />
+          <div className="grid sm:grid-cols-3 gap-4">
+            <button
+              onClick={() => setTheme('light')}
+              className={cn(
+                "p-4 rounded-2xl border text-left transition-all relative group flex flex-col justify-between h-36",
+                theme === 'light'
+                  ? "border-sky bg-sky/5 ring-2 ring-sky/20 shadow-sm"
+                  : "border-border bg-paper hover:bg-slate-50 dark:hover:bg-slate-800/50"
               )}
-            </div>
-            <div>
-              <div className="font-bold text-sm text-charcoal dark:text-white">Mode Clair</div>
-              <p className="text-[11px] text-muted-foreground mt-0.5">Contraste élevé pour les environnements de travail lumineux.</p>
-            </div>
-          </button>
-
-          <button
-            onClick={() => setTheme('dark')}
-            className={cn(
-              "p-4 rounded-2xl border text-left transition-all relative group flex flex-col justify-between h-36",
-              theme === 'dark'
-                ? "border-sky bg-sky/10 ring-2 ring-sky/30 shadow-sm"
-                : "border-border bg-paper hover:bg-slate-50 dark:hover:bg-slate-800/50"
-            )}
-          >
-            <div className="flex items-center justify-between w-full">
-              <div className="w-9 h-9 rounded-xl bg-slate-800 text-amber-400 flex items-center justify-center border border-slate-700">
-                <Moon size={18} />
+            >
+              <div className="flex items-center justify-between w-full">
+                <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-200">
+                  <Sun size={18} />
+                </div>
+                {theme === 'light' && (
+                  <CheckCircle2 size={18} className="text-sky" />
+                )}
               </div>
-              {theme === 'dark' && (
-                <CheckCircle2 size={18} className="text-sky" />
-              )}
-            </div>
-            <div>
-              <div className="font-bold text-sm text-charcoal dark:text-white">Mode Sombre</div>
-              <p className="text-[11px] text-muted-foreground mt-0.5">Repos visuel avec tons midnight navy et contraste adouci.</p>
-            </div>
-          </button>
-
-          <button
-            onClick={() => setTheme('system')}
-            className={cn(
-              "p-4 rounded-2xl border text-left transition-all relative group flex flex-col justify-between h-36",
-              theme === 'system'
-                ? "border-sky bg-sky/5 dark:bg-sky/10 ring-2 ring-sky/20 shadow-sm"
-                : "border-border bg-paper hover:bg-slate-50 dark:hover:bg-slate-800/50"
-            )}
-          >
-            <div className="flex items-center justify-between w-full">
-              <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center border border-border">
-                <Monitor size={18} />
+              <div>
+                <div className="font-bold text-sm text-charcoal dark:text-white">Mode Clair</div>
+                <p className="text-[11px] text-muted-foreground mt-0.5">Contraste élevé pour les environnements de travail lumineux.</p>
               </div>
-              {theme === 'system' && (
-                <CheckCircle2 size={18} className="text-sky" />
-              )}
-            </div>
-            <div>
-              <div className="font-bold text-sm text-charcoal dark:text-white">Automatique / Système</div>
-              <p className="text-[11px] text-muted-foreground mt-0.5">Suit automatiquement les préférences de votre système d'exploitation.</p>
-            </div>
-          </button>
-        </div>
-      </div>
+            </button>
 
-      <div className="bg-card rounded-3xl shadow-sm border border-border overflow-hidden">
-        <div className="p-6 border-b border-border flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-navy flex items-center justify-center">
-              <Users size={20} className="text-white" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-navy font-syne">Gestion des utilisateurs</h2>
-              <p className="text-xs text-muted-foreground">{mockUsers.length} utilisateurs enregistrés</p>
-            </div>
-          </div>
-          <div className="relative w-64">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Rechercher..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 rounded-lg bg-mist border border-border text-sm focus:outline-none focus:ring-2 focus:ring-sky/20 focus:border-sky transition-all"
-            />
+            <button
+              onClick={() => setTheme('dark')}
+              className={cn(
+                "p-4 rounded-2xl border text-left transition-all relative group flex flex-col justify-between h-36",
+                theme === 'dark'
+                  ? "border-sky bg-sky/10 ring-2 ring-sky/30 shadow-sm"
+                  : "border-border bg-paper hover:bg-slate-50 dark:hover:bg-slate-800/50"
+              )}
+            >
+              <div className="flex items-center justify-between w-full">
+                <div className="w-9 h-9 rounded-xl bg-slate-800 text-amber-400 flex items-center justify-center border border-slate-700">
+                  <Moon size={18} />
+                </div>
+                {theme === 'dark' && (
+                  <CheckCircle2 size={18} className="text-sky" />
+                )}
+              </div>
+              <div>
+                <div className="font-bold text-sm text-charcoal dark:text-white">Mode Sombre</div>
+                <p className="text-[11px] text-muted-foreground mt-0.5">Repos visuel avec tons midnight navy et contraste adouci.</p>
+              </div>
+            </button>
+
+            <button
+              onClick={() => setTheme('system')}
+              className={cn(
+                "p-4 rounded-2xl border text-left transition-all relative group flex flex-col justify-between h-36",
+                theme === 'system'
+                  ? "border-sky bg-sky/5 dark:bg-sky/10 ring-2 ring-sky/20 shadow-sm"
+                  : "border-border bg-paper hover:bg-slate-50 dark:hover:bg-slate-800/50"
+              )}
+            >
+              <div className="flex items-center justify-between w-full">
+                <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center border border-border">
+                  <Monitor size={18} />
+                </div>
+                {theme === 'system' && (
+                  <CheckCircle2 size={18} className="text-sky" />
+                )}
+              </div>
+              <div>
+                <div className="font-bold text-sm text-charcoal dark:text-white">Automatique / Système</div>
+                <p className="text-[11px] text-muted-foreground mt-0.5">Suit automatiquement les préférences de votre système d'exploitation.</p>
+              </div>
+            </button>
           </div>
         </div>
+      )}
 
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest border-b border-border">
-                <th className="text-left p-4">Utilisateur</th>
-                <th className="text-left p-4">Email</th>
-                <th className="text-left p-4">Rôle actuel</th>
-                <th className="text-left p-4">Modifier le rôle</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredUsers.map((user) => {
-                const currentRole = ROLES.find(r => r.value === user.role);
-                return (
-                  <tr key={user.uid} className="border-b border-border hover:bg-mist transition-colors">
-                    <td className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-navy flex items-center justify-center text-white text-xs font-bold">
-                          {user.displayName[0]}
-                        </div>
-                        <span className="font-bold text-sm text-navy">{user.displayName}</span>
-                      </div>
-                    </td>
-                    <td className="p-4 text-sm text-muted-foreground">{user.email}</td>
-                    <td className="p-4">
-                      <span className={cn("text-xs font-bold px-3 py-1 rounded-full", currentRole?.color)}>
-                        {currentRole?.label}
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      <select
-                        value={user.role}
-                        onChange={(e) => handleRoleChange(user.uid, e.target.value)}
-                        className="px-3 py-1.5 rounded-lg border border-border bg-card text-sm focus:outline-none focus:ring-2 focus:ring-sky/20"
-                      >
-                        {ROLES.map((role) => (
-                          <option key={role.value} value={role.value}>{role.label}</option>
-                        ))}
-                      </select>
-                    </td>
+      {/* TAB CONTENT: Utilisateurs & Rôles */}
+      {activeTab === 'utilisateurs' && (
+        <div className="space-y-8">
+          <div className="bg-card rounded-3xl shadow-sm border border-border overflow-hidden">
+            <div className="p-6 border-b border-border flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-navy flex items-center justify-center">
+                  <Users size={20} className="text-white" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-navy font-syne">Gestion des utilisateurs</h2>
+                  <p className="text-xs text-muted-foreground">{mockUsers.length} utilisateurs enregistrés</p>
+                </div>
+              </div>
+              <div className="relative w-64">
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Rechercher..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 rounded-lg bg-mist border border-border text-sm focus:outline-none focus:ring-2 focus:ring-sky/20 focus:border-sky transition-all"
+                />
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest border-b border-border">
+                    <th className="text-left p-4">Utilisateur</th>
+                    <th className="text-left p-4">Email</th>
+                    <th className="text-left p-4">Rôle actuel</th>
+                    <th className="text-left p-4">Modifier le rôle</th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div className="grid md:grid-cols-2 gap-8">
-        <div className="bg-card rounded-3xl p-8 shadow-sm border border-border">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-sky/10 flex items-center justify-center">
-              <Shield size={20} className="text-sky" />
+                </thead>
+                <tbody>
+                  {filteredUsers.map((user) => {
+                    const currentRole = ROLES.find(r => r.value === user.role);
+                    return (
+                      <tr key={user.uid} className="border-b border-border hover:bg-mist transition-colors">
+                        <td className="p-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-navy flex items-center justify-center text-white text-xs font-bold">
+                              {user.displayName[0]}
+                            </div>
+                            <span className="font-bold text-sm text-navy">{user.displayName}</span>
+                          </div>
+                        </td>
+                        <td className="p-4 text-sm text-muted-foreground">{user.email}</td>
+                        <td className="p-4">
+                          <span className={cn("text-xs font-bold px-3 py-1 rounded-full", currentRole?.color)}>
+                            {currentRole?.label}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <select
+                            value={user.role}
+                            onChange={(e) => handleRoleChange(user.uid, e.target.value)}
+                            className="px-3 py-1.5 rounded-lg border border-border bg-card text-sm focus:outline-none focus:ring-2 focus:ring-sky/20"
+                          >
+                            {ROLES.map((role) => (
+                              <option key={role.value} value={role.value}>{role.label}</option>
+                            ))}
+                          </select>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
-            <h3 className="text-lg font-bold text-navy font-syne">Rôles & Permissions</h3>
           </div>
-          <div className="space-y-3">
-            {ROLES.map((role) => (
-              <div key={role.value} className="flex items-center justify-between p-3 bg-mist rounded-xl">
-                <span className={cn("text-xs font-bold px-3 py-1 rounded-full", role.color)}>{role.label}</span>
-                <span className="text-xs text-muted-foreground">
-                  {mockUsers.filter(u => u.role === role.value).length} utilisateur(s)
-                </span>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="bg-card rounded-3xl p-8 shadow-sm border border-border">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-sky/10 flex items-center justify-center">
+                  <Shield size={20} className="text-sky" />
+                </div>
+                <h3 className="text-lg font-bold text-navy font-syne">Rôles & Permissions</h3>
               </div>
-            ))}
+              <div className="space-y-3">
+                {ROLES.map((role) => (
+                  <div key={role.value} className="flex items-center justify-between p-3 bg-mist rounded-xl">
+                    <span className={cn("text-xs font-bold px-3 py-1 rounded-full", role.color)}>{role.label}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {mockUsers.filter(u => u.role === role.value).length} utilisateur(s)
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-card rounded-3xl p-8 shadow-sm border border-border">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center">
+                  <UserCog size={20} className="text-gold" />
+                </div>
+                <h3 className="text-lg font-bold text-navy font-syne">Organisation</h3>
+              </div>
+              <div className="space-y-4">
+                <div className="p-4 bg-mist rounded-xl">
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Nom</p>
+                  <p className="text-sm font-bold text-navy">RecovAI — Organisation par défaut</p>
+                </div>
+                <div className="p-4 bg-mist rounded-xl">
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Plan actif</p>
+                  <p className="text-sm font-bold text-sky">Business</p>
+                </div>
+                <div className="p-4 bg-mist rounded-xl">
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Dossiers</p>
+                  <p className="text-sm font-bold text-navy">252 / Illimité</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
+      )}
 
-        <div className="bg-card rounded-3xl p-8 shadow-sm border border-border">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center">
-              <UserCog size={20} className="text-gold" />
-            </div>
-            <h3 className="text-lg font-bold text-navy font-syne">Organisation</h3>
-          </div>
-          <div className="space-y-4">
-            <div className="p-4 bg-mist rounded-xl">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Nom</p>
-              <p className="text-sm font-bold text-navy">RecovAI — Organisation par défaut</p>
-            </div>
-            <div className="p-4 bg-mist rounded-xl">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Plan actif</p>
-              <p className="text-sm font-bold text-sky">Business</p>
-            </div>
-            <div className="p-4 bg-mist rounded-xl">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Dossiers</p>
-              <p className="text-sm font-bold text-navy">252 / Illimité</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <LitigationTriggers />
+      {/* TAB CONTENT: Déclencheurs */}
+      {activeTab === 'declencheurs' && (
+        <LitigationTriggers />
+      )}
     </div>
   );
 }

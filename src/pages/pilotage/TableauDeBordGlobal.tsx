@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   TrendingUp, BarChart3, AlertCircle, Sparkles, HelpCircle, HardDrive, 
-  CheckCircle2, AlertOctagon, Scale, ShieldAlert, Cpu, Download, FileSpreadsheet, Play, MailCheck
+  CheckCircle2, AlertOctagon, Scale, ShieldAlert, Cpu, Download, FileSpreadsheet, Play, MailCheck,
+  FolderTree, Layers
 } from 'lucide-react';
 import { PilotageFilters } from '@/components/pilotage/PilotageFilters';
+import { HierarchicalPortfolioExplorer } from '@/components/pilotage/HierarchicalPortfolioExplorer';
 import { 
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
@@ -106,6 +108,25 @@ export default function TableauDeBordGlobal() {
     } finally {
       setAnalyzing(false);
     }
+  };
+
+  const handleSelectTaxonomyLevel = (levels: {
+    portfolioL1?: string;
+    categoryL2?: string;
+    subCategoryL3?: string;
+    productL4?: string;
+  }) => {
+    const targetSelection = levels.productL4 || levels.subCategoryL3 || levels.categoryL2 || levels.portfolioL1 || 'All';
+    const updated = {
+      ...filters,
+      ...levels,
+      portfolio: targetSelection,
+    };
+    setFilters(updated);
+    toast({
+      title: "Filtre Portefeuille Appliqué",
+      description: `Niveau sélectionné : ${targetSelection}`,
+    });
   };
 
   const handleExport = async (format: 'pdf' | 'excel') => {
@@ -300,6 +321,21 @@ export default function TableauDeBordGlobal() {
           </div>
         </motion.div>
       </div>
+
+      {/* 4-Level Hierarchical Portfolio Architecture Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+      >
+        <HierarchicalPortfolioExplorer
+          selectedPortfolioL1={filters.portfolioL1}
+          selectedCategoryL2={filters.categoryL2}
+          selectedSubCategoryL3={filters.subCategoryL3}
+          selectedProductL4={filters.productL4}
+          onSelectLevel={handleSelectTaxonomyLevel}
+        />
+      </motion.div>
 
       {/* Interactive Recharts Section */}
       {charts && (

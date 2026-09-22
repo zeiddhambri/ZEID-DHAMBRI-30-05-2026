@@ -226,12 +226,12 @@ export default function Rapports() {
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider bg-gray-100 text-gray-600 rounded">
-                      {def.category}
+                      {def.category || 'Général'}
                     </span>
                     <span className="text-[10px] text-gray-400 font-mono font-bold uppercase">{def.id}</span>
                   </div>
-                  <h3 className="text-sm font-bold text-gray-900 leading-snug line-clamp-2">{def.name}</h3>
-                  <p className="text-xs text-gray-500 mt-2 line-clamp-3 leading-relaxed">{def.description}</p>
+                  <h3 className="text-sm font-bold text-gray-900 leading-snug line-clamp-2">{def.name || 'Rapport'}</h3>
+                  <p className="text-xs text-gray-500 mt-2 line-clamp-3 leading-relaxed">{def.description || 'Rapport consolidé généré automatiquement par RecovAI.'}</p>
                 </div>
 
                 <div className="flex items-center justify-between pt-4 border-t border-gray-50 mt-4">
@@ -395,40 +395,55 @@ export default function Rapports() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {generated.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-50/50">
-                      <td className="py-3 font-semibold text-gray-800 max-w-[200px] truncate">
-                        {item.name}
-                        <span className="block text-[10px] text-gray-400 font-mono truncate">{item.file_name}</span>
-                      </td>
-                      <td className="py-3 text-center">
-                        <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
-                          item.format === 'pdf' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-700'
-                        }`}>
-                          {item.format.toUpperCase()}
-                        </span>
-                      </td>
-                      <td className="py-3 font-mono text-gray-500">
-                        {new Date(item.generated_at).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })}
-                      </td>
-                      <td className="py-3 text-gray-600">
-                        {item.generated_by}
-                      </td>
-                      <td className="py-3 text-center">
-                        <span className="px-1.5 py-0.5 font-bold uppercase rounded text-[9px] bg-emerald-100 text-emerald-800">
-                          {item.status}
-                        </span>
-                      </td>
-                      <td className="py-3 text-right">
-                        <button
-                          onClick={() => handleDownloadReport(item.id, item.file_name)}
-                          className="p-1 hover:bg-gray-100 text-gray-600 hover:text-emerald-600 rounded transition-colors"
-                        >
-                          <Download size={14} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {generated.map((item) => {
+                    const fmt = (item.format || 'pdf').toLowerCase();
+                    const fileName = item.file_name || `${item.name || 'rapport'}.${fmt}`;
+                    const dateStr = item.generated_at || item.generatedAt;
+                    let formattedDate = 'Récemment';
+                    if (dateStr) {
+                      try {
+                        formattedDate = new Date(dateStr).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' });
+                      } catch (e) {
+                        formattedDate = String(dateStr);
+                      }
+                    }
+
+                    return (
+                      <tr key={item.id} className="hover:bg-gray-50/50">
+                        <td className="py-3 font-semibold text-gray-800 max-w-[200px] truncate">
+                          {item.name || 'Rapport sans titre'}
+                          <span className="block text-[10px] text-gray-400 font-mono truncate">{fileName}</span>
+                        </td>
+                        <td className="py-3 text-center">
+                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
+                            fmt === 'pdf' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-700'
+                          }`}>
+                            {fmt.toUpperCase()}
+                          </span>
+                        </td>
+                        <td className="py-3 font-mono text-gray-500">
+                          {formattedDate}
+                        </td>
+                        <td className="py-3 text-gray-600">
+                          {item.generated_by || item.generatedBy || 'Utilisateur'}
+                        </td>
+                        <td className="py-3 text-center">
+                          <span className="px-1.5 py-0.5 font-bold uppercase rounded text-[9px] bg-emerald-100 text-emerald-800">
+                            {item.status || 'Terminé'}
+                          </span>
+                        </td>
+                        <td className="py-3 text-right">
+                          <button
+                            onClick={() => handleDownloadReport(item.id, fileName)}
+                            className="p-1 hover:bg-gray-100 text-gray-600 hover:text-emerald-600 rounded transition-colors"
+                            title="Télécharger le rapport"
+                          >
+                            <Download size={14} />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

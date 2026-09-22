@@ -12,6 +12,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { EnrichedLitigationCase, LitigationKPIs, LitigationFilters, PeriodPreset, PortfolioFilter } from '@/types/litigation-analytics';
+import { TUNISIAN_INSTITUTIONS } from '@/data/institutions';
 
 const COLORS = [
   'hsl(var(--cobalt))', // Cobalt Blue
@@ -347,9 +348,34 @@ export default function AnalyticsContentieux() {
                     className="w-full bg-secondary text-xs rounded-xl p-2.5 border border-border/40 focus:outline-none focus:ring-1 focus:ring-cobalt font-medium"
                   >
                     <option value="All">Toutes institutions</option>
-                    <option value="Amen Bank">Amen Bank</option>
-                    <option value="Tunisie Leasing">Tunisie Leasing</option>
-                    <option value="Enda Tamweel">Enda Tamweel</option>
+                    <optgroup label="🏦 Banques Résidentes">
+                      {TUNISIAN_INSTITUTIONS.filter(i => i.category === 'banque_residente').map(inst => (
+                        <option key={inst.id} value={inst.code}>
+                          {inst.code} — {inst.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="🌐 Banques Offshore">
+                      {TUNISIAN_INSTITUTIONS.filter(i => i.category === 'banque_offshore').map(inst => (
+                        <option key={inst.id} value={inst.code}>
+                          {inst.code} — {inst.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="🌱 Microfinance (IMF)">
+                      {TUNISIAN_INSTITUTIONS.filter(i => i.category === 'microfinance').map(inst => (
+                        <option key={inst.id} value={inst.code}>
+                          {inst.code}
+                        </option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="📄 Leasing & Factoring">
+                      {TUNISIAN_INSTITUTIONS.filter(i => i.category === 'leasing_factoring').map(inst => (
+                        <option key={inst.id} value={inst.code}>
+                          {inst.code}
+                        </option>
+                      ))}
+                    </optgroup>
                   </select>
                 </div>
 

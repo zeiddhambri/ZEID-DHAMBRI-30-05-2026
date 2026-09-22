@@ -11,6 +11,7 @@ import relancesRouter from './server/routes/relances';
 import creditIfrs9Router from './server/routes/creditIfrs9';
 import clientsRouter from './server/routes/clients';
 import pilotageRouter from './server/routes/pilotage';
+import institutionsRouter from './server/routes/institutions';
 import supabaseCompatRouter from './server/routes/supabaseCompat';
 
 async function startServer() {
@@ -41,6 +42,7 @@ async function startServer() {
   app.use('/api/credit-ifrs9', creditIfrs9Router);
   app.use('/api/clients', clientsRouter);
   app.use('/api/pilotage', pilotageRouter);
+  app.use('/api/institutions', institutionsRouter);
 
   // Supabase PostgREST compatibility layer (enables supabase.from() to hit the backend directly)
   app.use('/rest/v1', supabaseCompatRouter);

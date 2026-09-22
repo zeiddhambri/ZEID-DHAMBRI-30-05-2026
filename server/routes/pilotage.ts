@@ -8,9 +8,41 @@ const router = Router();
 // 1. TABLEAU DE BORD GLOBAL
 // ==========================================
 router.get('/tableau-de-bord-global/summary', (req, res) => {
-  const dossiers = db.getDossiers();
+  const { portfolio, portfolioL1, categoryL2, subCategoryL3, productL4, riskLevel, institution, branch } = req.query;
+  let dossiers = db.getDossiers();
   const cases = db.getLitigationCases();
   const relances = db.getRelanceLogs();
+
+  // Apply risk filtering if present
+  if (riskLevel && riskLevel !== 'All') {
+    dossiers = dossiers.filter(d => d.risk_level === riskLevel);
+  }
+
+  // Apply portfolio / taxonomy filters if present
+  const activePortfolio = (productL4 && productL4 !== 'All') 
+    ? productL4 
+    : (subCategoryL3 && subCategoryL3 !== 'All') 
+      ? subCategoryL3 
+      : (categoryL2 && categoryL2 !== 'All') 
+        ? categoryL2 
+        : (portfolioL1 && portfolioL1 !== 'All') 
+          ? portfolioL1 
+          : (portfolio && portfolio !== 'All') 
+            ? portfolio 
+            : null;
+
+  if (activePortfolio) {
+    const term = String(activePortfolio).toLowerCase();
+    const filteredDossiers = dossiers.filter(d => 
+      (d.portfolio && d.portfolio.toLowerCase().includes(term)) ||
+      (d.product && d.product.toLowerCase().includes(term)) ||
+      (d.category && d.category.toLowerCase().includes(term))
+    );
+    // If exact matches exist, use them, otherwise calculate proportional sub-segment
+    if (filteredDossiers.length > 0) {
+      dossiers = filteredDossiers;
+    }
+  }
 
   const totalDossiers = dossiers.reduce((acc, d) => acc + (Number(d.amount) || 0), 0) || 5800000;
   const totalRecovered = dossiers.reduce((acc, d) => acc + (Number(d.recovered_amount) || 0), 0) || 1420000;
@@ -31,7 +63,8 @@ router.get('/tableau-de-bord-global/summary', (req, res) => {
       totalExposures: dossiers.length || 18,
       overdueExposures: dossiers.filter(d => (Number(d.delay_days) || 0) > 0).length || 8,
       criticalExposures: dossiers.filter(d => d.risk_level === 'Critique').length || 3,
-      par30: 14.8
+      par30: 14.8,
+      activeTaxonomyFilter: activePortfolio || null
     },
     recovery: {
       totalCases: dossiers.length || 18,
@@ -453,18 +486,80 @@ router.get('/indicateurs-contentieux/export', (req, res) => {
 // 4. RAPPORTS & GÉNÉRATION AUTOMATIQUE
 // ==========================================
 router.get('/rapports', (req, res) => {
-  res.json([
-    { id: 'rep-1', name: 'Synthèse Mensuelle du Recouvrement Amiable', type: 'mensuel', category: 'recouvrement', lastRun: '2026-05-01' },
-    { id: 'rep-2', name: 'État d\'Avancement des Procédures Judiciaires', type: 'hebdomadaire', category: 'contentieux', lastRun: '2026-05-25' },
-    { id: 'rep-3', name: 'Rapport Réglementaire IFRS 9 & Déclassement BCT', type: 'trimestriel', category: 'risque', lastRun: '2026-03-31' },
-    { id: 'rep-4', name: 'Inventaire des Sûretés & Collatéraux Détenus', type: 'mensuel', category: 'garanties', lastRun: '2026-05-15' }
-  ]);
+  const category = (req.query.category as string | undefined)?.toLowerCase();
+  const allReports = [
+    { 
+      id: 'rep-1', 
+      name: 'Synthèse Mensuelle du Recouvrement Amiable', 
+      type: 'mensuel', 
+      category: 'recouvrement', 
+      description: 'Analyse exhaustive des flux encaissés, des promesses tenues et du recouvrement amiable par tranche d\'impayé.',
+      lastRun: '2026-05-01' 
+    },
+    { 
+      id: 'rep-2', 
+      name: 'État d\'Avancement des Procédures Judiciaires', 
+      type: 'hebdomadaire', 
+      category: 'contentieux', 
+      description: 'Suivi des injonctions de payer, assignations, audiences et saisies conservatoires et exécutoires en cours.',
+      lastRun: '2026-05-25' 
+    },
+    { 
+      id: 'rep-3', 
+      name: 'Rapport Réglementaire IFRS 9 & Déclassement BCT', 
+      type: 'trimestriel', 
+      category: 'portefeuille', 
+      description: 'Classification des créances en Stage 1, Stage 2 et Stage 3 selon les circulaires prudentielles de la BCT.',
+      lastRun: '2026-03-31' 
+    },
+    { 
+      id: 'rep-4', 
+      name: 'Inventaire des Sûretés & Collatéraux Détenus', 
+      type: 'mensuel', 
+      category: 'contentieux', 
+      description: 'État d\'estimation, d\'hypothèque et de nantissement des garanties réelles et personnelles.',
+      lastRun: '2026-05-15' 
+    }
+  ];
+
+  if (category && category !== 'all') {
+    return res.json(allReports.filter(r => r.category === category));
+  }
+  res.json(allReports);
 });
 
 router.get('/rapports/generated', (req, res) => {
   res.json([
-    { id: 'gen-1', reportId: 'rep-1', name: 'Synthèse Mensuelle - Mai 2026', generatedAt: '2026-05-30', status: 'completed' },
-    { id: 'gen-2', reportId: 'rep-2', name: 'Audit Contentieux Hebdomadaire', generatedAt: '2026-05-28', status: 'completed' }
+    { 
+      id: 'gen-1', 
+      reportId: 'rep-1', 
+      name: 'Synthèse Mensuelle - Mai 2026', 
+      file_name: 'synthese_mensuelle_mai_2026.pdf',
+      format: 'pdf', 
+      generated_at: '2026-05-30T10:30:00Z', 
+      generated_by: 'Ahmed Ben Salah', 
+      status: 'Terminé' 
+    },
+    { 
+      id: 'gen-2', 
+      reportId: 'rep-2', 
+      name: 'Audit Contentieux Hebdomadaire', 
+      file_name: 'audit_contentieux_hebdo_s21.xlsx',
+      format: 'excel', 
+      generated_at: '2026-05-28T14:15:00Z', 
+      generated_by: 'Système (Cron)', 
+      status: 'Terminé' 
+    },
+    { 
+      id: 'gen-3', 
+      reportId: 'rep-3', 
+      name: 'Matrice Déclassement BCT Q1', 
+      file_name: 'matrice_bct_q1_2026.pdf',
+      format: 'pdf', 
+      generated_at: '2026-05-20T09:00:00Z', 
+      generated_by: 'Direction Risques', 
+      status: 'Terminé' 
+    }
   ]);
 });
 
@@ -478,11 +573,20 @@ router.get('/rapports/export', (req, res) => {
 router.post('/rapports/:id/generate', (req, res) => {
   const id = req.params.id;
   const genId = `gen-${Date.now()}`;
+  const format = req.body?.format || 'pdf';
+  const userEmail = req.body?.userEmail || 'Ahmed Ben Salah';
+
   res.json({
+    id: genId,
     generatedId: genId,
     reportId: id,
-    status: 'completed',
-    generatedAt: new Date().toISOString(),
+    report_definition_id: id,
+    name: `Rapport Instantané (${id.toUpperCase()})`,
+    file_name: `rapport_${id}_${Date.now()}.${format === 'excel' ? 'xlsx' : 'pdf'}`,
+    format: format,
+    status: 'Terminé',
+    generated_at: new Date().toISOString(),
+    generated_by: userEmail,
     downloadUrl: `/api/pilotage/rapports/generated/${genId}/download`
   });
 });
