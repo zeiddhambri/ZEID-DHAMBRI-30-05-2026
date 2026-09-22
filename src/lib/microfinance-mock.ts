@@ -26,12 +26,12 @@ export interface MfiState {
 }
 
 const INITIAL_CLIENTS: MfiClient[] = [
-  { id: 'cli-1', name: 'Amel Bouslama', email: 'amel.bouslama@ar-boutique.tn', phone: '+216 98 450 112', nationalId: '08342110', branch: 'Ariana Centre', businessSector: 'Commerce de détails - Prêt-à-porter' },
-  { id: 'cli-2', name: 'Mohamed Ben Ali', email: 'med.ali.agri@zaghouan.org', phone: '+216 22 154 390', nationalId: '04219904', branch: 'Zaghouan Ville', businessSector: 'Agriculture - Production d\'olives' },
-  { id: 'cli-3', name: 'Sofiène Chaâri', email: 'sof.chaari.wood@gmail.com', phone: '+216 55 981 302', nationalId: '11029113', branch: 'Sfax El-Jadida', businessSector: 'Artisanat - Menuiserie bois' },
-  { id: 'cli-4', name: 'Rim El-Heni', email: 'rim.heni.beauty@outlook.com', phone: '+216 29 448 290', nationalId: '09123844', branch: 'Tunis Lafayette', businessSector: 'Soin & Services - Salon de coiffure' },
-  { id: 'cli-5', name: 'Fethi Gharbi', email: 'fethi.bakery@gmail.com', phone: '+216 97 221 445', nationalId: '05118943', branch: 'Bizerte Ville', businessSector: 'Alimentation - Boulangerie pâtisserie' },
-  { id: 'cli-6', name: 'Zohra Mansour', email: 'zohra.couture@topnet.tn', phone: '+216 54 883 001', nationalId: '07198305', branch: 'Kairouan Sud', businessSector: 'Artisanat - Atelier de couture' }
+  { id: 'cli-1', name: 'Amel Bouslama', email: 'amel.bouslama@ar-boutique.tn', phone: '+216 30 000 000', nationalId: '08342110', branch: 'Ariana Centre', businessSector: 'Commerce de détails - Prêt-à-porter' },
+  { id: 'cli-2', name: 'Mohamed Ben Ali', email: 'med.ali.agri@zaghouan.org', phone: '+216 30 000 000', nationalId: '04219904', branch: 'Zaghouan Ville', businessSector: 'Agriculture - Production d\'olives' },
+  { id: 'cli-3', name: 'Sofiène Chaâri', email: 'sof.chaari.wood@gmail.com', phone: '+216 30 000 000', nationalId: '11029113', branch: 'Sfax El-Jadida', businessSector: 'Artisanat - Menuiserie bois' },
+  { id: 'cli-4', name: 'Rim El-Heni', email: 'rim.heni.beauty@outlook.com', phone: '+216 30 000 000', nationalId: '09123844', branch: 'Tunis Lafayette', businessSector: 'Soin & Services - Salon de coiffure' },
+  { id: 'cli-5', name: 'Fethi Gharbi', email: 'fethi.bakery@gmail.com', phone: '+216 30 000 000', nationalId: '05118943', branch: 'Bizerte Ville', businessSector: 'Alimentation - Boulangerie pâtisserie' },
+  { id: 'cli-6', name: 'Zohra Mansour', email: 'zohra.couture@topnet.tn', phone: '+216 30 000 000', nationalId: '07198305', branch: 'Kairouan Sud', businessSector: 'Artisanat - Atelier de couture' }
 ];
 
 const INITIAL_LOANS: LoanAccount[] = [
@@ -351,7 +351,7 @@ const INITIAL_COLLATERALS: Collateral[] = [
 ];
 
 const INITIAL_GUARANTORS: Guarantor[] = [
-  { id: 'gua-1', loanAccountId: 'loan-3', name: 'Habib Chaâri (Frère)', phone: '+216 20 883 912', relationship: 'Famille / Garant', guaranteeAmount: 4000, status: 'contacted' }
+  { id: 'gua-1', loanAccountId: 'loan-3', name: 'Habib Chaâri (Frère)', phone: '+216 30 000 000', relationship: 'Famille / Garant', guaranteeAmount: 4000, status: 'contacted' }
 ];
 
 const INITIAL_LOGS: MfiAuditLog[] = [

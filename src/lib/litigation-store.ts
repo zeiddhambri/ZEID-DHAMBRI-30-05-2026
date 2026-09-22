@@ -226,13 +226,13 @@ const DEFAULT_PRE_LIT: PreLitigationCase[] = [
 const DEFAULT_LEGAL_CASES: LegalCase[] = [
   {
     id: 'LIT-2024-0001',
-    client_name: "SOCIETE ALPHA SARL",
+    client_name: "DEBITEUR ALPHA DEMO",
     portfolio_type: "Factoring",
     institution: "Amen Bank",
     branch: "Tunis Belvédère",
     legal_case_number: "RG-2024-8714",
     legal_officer_id: "Amel Ben Ali",
-    external_lawyer_id: "Maître Sonia Trabelsi",
+    external_lawyer_id: "Maître Demo Alpha",
     principal_due: 145000,
     interest_due: 8200,
     penalties_due: 3400,
@@ -254,13 +254,13 @@ const DEFAULT_LEGAL_CASES: LegalCase[] = [
   },
   {
     id: 'LIT-2024-0002',
-    client_name: "BEN SALEM AHMED",
+    client_name: "PARTICULIER DEMO 01",
     portfolio_type: "Leasing",
     institution: "Tunisie Leasing",
     branch: "Sousse Corniche",
     legal_case_number: "RG-2023-1120",
-    legal_officer_id: "Sami K.",
-    external_lawyer_id: "Maître Karim Belhaj",
+    legal_officer_id: "Agent Démo 2",
+    external_lawyer_id: "Maître Demo Bravo",
     principal_due: 22000,
     interest_due: 1450,
     penalties_due: 580,
@@ -282,13 +282,13 @@ const DEFAULT_LEGAL_CASES: LegalCase[] = [
   },
   {
     id: 'LIT-2024-0003',
-    client_name: "GLOBAL TECH TUNISIE",
+    client_name: "TECH GLOBAL DEMO",
     portfolio_type: "Factoring",
     institution: "Amen Bank",
     branch: "Lac Tunis",
     legal_case_number: "RG-2024-9122",
-    legal_officer_id: "Leila M.",
-    external_lawyer_id: "Maître Sonia Trabelsi",
+    legal_officer_id: "Agent Démo 3",
+    external_lawyer_id: "Maître Demo Alpha",
     principal_due: 320000,
     interest_due: 2400,
     penalties_due: 0,
@@ -313,12 +313,12 @@ const DEFAULT_ACTIONS: LegalAction[] = [
   {
     id: "ACT-0001",
     legal_case_id: "LIT-2024-0001",
-    client_name: "SOCIETE ALPHA SARL",
+    client_name: "DEBITEUR ALPHA DEMO",
     action_type: "formal_notice",
     action_date: "2024-01-20",
     due_date: "2024-02-10",
-    performed_by: "Ahmed B.",
-    external_party: "Mehdi Ouali (Huissier)",
+    performed_by: "Agent Démo 1",
+    external_party: "Huissier Demo 1 (Huissier)",
     result: "Signifiée en mains propres avec succès.",
     status: "completed",
     notes: "Mise en demeure transmise par exploit d'huissier."
@@ -326,11 +326,11 @@ const DEFAULT_ACTIONS: LegalAction[] = [
   {
     id: "ACT-0002",
     legal_case_id: "LIT-2024-0001",
-    client_name: "SOCIETE ALPHA SARL",
+    client_name: "DEBITEUR ALPHA DEMO",
     action_type: "court_filing",
     action_date: "2024-02-05",
     due_date: "2024-02-15",
-    performed_by: "Maître Sonia Trabelsi",
+    performed_by: "Maître Demo Alpha",
     external_party: "Greffe TPI Tunis",
     result: "Enregistrement de la requête n°8714",
     status: "completed"
@@ -338,11 +338,11 @@ const DEFAULT_ACTIONS: LegalAction[] = [
   {
     id: "ACT-0003",
     legal_case_id: "LIT-2024-0001",
-    client_name: "SOCIETE ALPHA SARL",
+    client_name: "DEBITEUR ALPHA DEMO",
     action_type: "hearing",
     action_date: "2026-06-15",
     due_date: "2026-06-15",
-    performed_by: "Maître Sonia Trabelsi",
+    performed_by: "Maître Demo Alpha",
     external_party: "Tribunal de Tunis - Chambre 3",
     status: "planned",
     notes: "Audience d'examen de la demande reconventionnelle."
@@ -350,11 +350,11 @@ const DEFAULT_ACTIONS: LegalAction[] = [
   {
     id: "ACT-0004",
     legal_case_id: "LIT-2024-0002",
-    client_name: "BEN SALEM AHMED",
+    client_name: "PARTICULIER DEMO 01",
     action_type: "judgment",
     action_date: "2024-01-10",
     due_date: "2024-01-10",
-    performed_by: "Maître Karim Belhaj",
+    performed_by: "Maître Demo Bravo",
     external_party: "Tribunal de Sousse",
     result: "Jugement d'injonction favorable rendu par défaut.",
     status: "completed"
@@ -362,12 +362,12 @@ const DEFAULT_ACTIONS: LegalAction[] = [
   {
     id: "ACT-0005",
     legal_case_id: "LIT-2024-0002",
-    client_name: "BEN SALEM AHMED",
+    client_name: "PARTICULIER DEMO 01",
     action_type: "collateral_seizure",
     action_date: "2024-03-15",
     due_date: "2024-04-10",
-    performed_by: "Maître Karim Belhaj",
-    external_party: "Fatma Zribi (Huissier Sousse)",
+    performed_by: "Maître Demo Bravo",
+    external_party: "Huissier Demo 2 (Huissier Sousse)",
     result: "Saisie conservatoire du véhicule effectuée.",
     status: "completed",
     notes: "Véhicule mis en fourrière judiciaire à Sousse."
@@ -378,13 +378,13 @@ const DEFAULT_DOCUMENTS: LegalDocument[] = [
   {
     id: "DOC-0001",
     legal_case_id: "LIT-2024-0001",
-    client_name: "SOCIETE ALPHA SARL",
+    client_name: "DEBITEUR ALPHA DEMO",
     document_type: "loan_contract",
     document_name: "Contrat d'ouverture de ligne de factoring n°844.pdf",
     required: true,
     verified: true,
     verification_status: "verified",
-    uploaded_by: "Ahmed B.",
+    uploaded_by: "Agent Démo 1",
     uploaded_at: "2024-01-16",
     verified_by: "Amel Ben Ali",
     verified_at: "2024-01-18",
@@ -393,7 +393,7 @@ const DEFAULT_DOCUMENTS: LegalDocument[] = [
   {
     id: "DOC-0002",
     legal_case_id: "LIT-2024-0001",
-    client_name: "SOCIETE ALPHA SARL",
+    client_name: "DEBITEUR ALPHA DEMO",
     document_type: "formal_notice",
     document_name: "Exploit d'huissier - Mise en demeure Alpha SARL.pdf",
     required: true,
@@ -407,7 +407,7 @@ const DEFAULT_DOCUMENTS: LegalDocument[] = [
   {
     id: "DOC-0003",
     legal_case_id: "LIT-2024-0001",
-    client_name: "SOCIETE ALPHA SARL",
+    client_name: "DEBITEUR ALPHA DEMO",
     document_type: "factoring_assignment",
     document_name: "Bordereau de cession de créances n_112.pdf",
     required: true,
@@ -417,29 +417,29 @@ const DEFAULT_DOCUMENTS: LegalDocument[] = [
   {
     id: "DOC-0004",
     legal_case_id: "LIT-2024-0002",
-    client_name: "BEN SALEM AHMED",
+    client_name: "PARTICULIER DEMO 01",
     document_type: "leasing_contract",
     document_name: "Contrat de Leasing n_LS-2021-992.pdf",
     required: true,
     verified: true,
     verification_status: "verified",
-    uploaded_by: "Sami K.",
+    uploaded_by: "Agent Démo 2",
     uploaded_at: "2023-11-22",
-    verified_by: "Sami K.",
+    verified_by: "Agent Démo 2",
     verified_at: "2023-11-23"
   },
   {
     id: "DOC-0005",
     legal_case_id: "LIT-2024-0002",
-    client_name: "BEN SALEM AHMED",
+    client_name: "PARTICULIER DEMO 01",
     document_type: "enforcement_order",
     document_name: "Formule exécutoire du jugement d'injonction.pdf",
     required: true,
     verified: true,
     verification_status: "verified",
-    uploaded_by: "Maître Karim Belhaj",
+    uploaded_by: "Maître Demo Bravo",
     uploaded_at: "2024-02-10",
-    verified_by: "Sami K.",
+    verified_by: "Agent Démo 2",
     verified_at: "2024-02-12"
   }
 ];
@@ -448,7 +448,7 @@ const DEFAULT_COLLATERALS: Collateral[] = [
   {
     id: "COL-0001",
     legal_case_id: "LIT-2024-0001",
-    client_name: "SOCIETE ALPHA SARL",
+    client_name: "DEBITEUR ALPHA DEMO",
     collateral_type: "building",
     description: "Hypothèque foncière de 1er rang sur local commercial à Tunis Belvédère.",
     estimated_value: 180000,
@@ -459,7 +459,7 @@ const DEFAULT_COLLATERALS: Collateral[] = [
   {
     id: "COL-0002",
     legal_case_id: "LIT-2024-0002",
-    client_name: "BEN SALEM AHMED",
+    client_name: "PARTICULIER DEMO 01",
     collateral_type: "vehicle",
     description: "Utilitaire Peugeot Boxer immatriculé 188 TN 8451.",
     estimated_value: 25000,
@@ -475,9 +475,9 @@ const DEFAULT_GUARANTORS: Guarantor[] = [
   {
     id: "GUA-0001",
     legal_case_id: "LIT-2024-0001",
-    client_name: "SOCIETE ALPHA SARL",
+    client_name: "DEBITEUR ALPHA DEMO",
     full_name: "Ben Amar Hichem",
-    phone: "+216 98 456 123",
+    phone: "+216 30 000 000",
     address: "Appartement 14A, Les Berges du Lac 2, Tunis",
     relationship: "Gérant majoritaire",
     guarantee_amount: 150000,
@@ -486,9 +486,9 @@ const DEFAULT_GUARANTORS: Guarantor[] = [
   {
     id: "GUA-0002",
     legal_case_id: "LIT-2024-0003",
-    client_name: "GLOBAL TECH TUNISIE",
+    client_name: "TECH GLOBAL DEMO",
     full_name: "Cherif Mohamed",
-    phone: "+216 22 998 776",
+    phone: "+216 30 000 000",
     address: "Zone Industrielle Charguia II, Tunis",
     relationship: "Directeur Général associé",
     guarantee_amount: 400000,
@@ -500,7 +500,7 @@ const DEFAULT_FEES: LegalFee[] = [
   {
     id: "FEE-0001",
     legal_case_id: "LIT-2024-0001",
-    client_name: "SOCIETE ALPHA SARL",
+    client_name: "DEBITEUR ALPHA DEMO",
     fee_type: "lawyer_fee",
     amount: 3500,
     currency: "TND",
@@ -515,7 +515,7 @@ const DEFAULT_FEES: LegalFee[] = [
   {
     id: "FEE-0002",
     legal_case_id: "LIT-2024-0001",
-    client_name: "SOCIETE ALPHA SARL",
+    client_name: "DEBITEUR ALPHA DEMO",
     fee_type: "bailiff_fee",
     amount: 850,
     currency: "TND",
@@ -525,12 +525,12 @@ const DEFAULT_FEES: LegalFee[] = [
     recoverable_from_client: true,
     recovered_amount: 0,
     status: "paid",
-    notes: "Exploit de mise en demeure par Huissier Mehdi Ouali"
+    notes: "Exploit de mise en demeure par Huissier Huissier Demo 1"
   },
   {
     id: "FEE-0003",
     legal_case_id: "LIT-2024-0002",
-    client_name: "BEN SALEM AHMED",
+    client_name: "PARTICULIER DEMO 01",
     fee_type: "bailiff_fee",
     amount: 620,
     currency: "TND",
@@ -540,7 +540,7 @@ const DEFAULT_FEES: LegalFee[] = [
     recoverable_from_client: true,
     recovered_amount: 620,
     status: "recovered",
-    notes: "PV de saisie conservatoire - Huissier Fatma Zribi"
+    notes: "PV de saisie conservatoire - Huissier Huissier Demo 2"
   }
 ];
 

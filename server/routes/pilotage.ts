@@ -1,15 +1,17 @@
 import { Router } from 'express';
 import { db } from '../db/dataStore';
 import { GoogleGenAI } from '@google/genai';
+import { audit } from '../auth';
+import { scopedDossiers } from '../db/repo';
 
 const router = Router();
 
 // ==========================================
 // 1. TABLEAU DE BORD GLOBAL
 // ==========================================
-router.get('/tableau-de-bord-global/summary', (req, res) => {
+router.get('/tableau-de-bord-global/summary', async (req, res) => {
   const { portfolio, portfolioL1, categoryL2, subCategoryL3, productL4, riskLevel, institution, branch } = req.query;
-  let dossiers = db.getDossiers();
+  let dossiers = await scopedDossiers(req.auth?.institution || null);
   const cases = db.getLitigationCases();
   const relances = db.getRelanceLogs();
 
@@ -44,69 +46,80 @@ router.get('/tableau-de-bord-global/summary', (req, res) => {
     }
   }
 
-  const totalDossiers = dossiers.reduce((acc, d) => acc + (Number(d.amount) || 0), 0) || 5800000;
-  const totalRecovered = dossiers.reduce((acc, d) => acc + (Number(d.recovered_amount) || 0), 0) || 1420000;
+  // Lot P0 : suppression des valeurs de remplissage câblées — les KPI reflètent
+  // strictement la base (0 si vide), aucune donnée fictive n'est présentée comme réelle.
+  const totalDossiers = dossiers.reduce((acc, d) => acc + (Number(d.amount) || 0), 0);
+  const totalRecovered = dossiers.reduce((acc, d) => acc + (Number(d.recovered_amount) || 0), 0);
   const overdueDossiers = dossiers
     .filter(d => (Number(d.delay_days) || 0) > 0)
-    .reduce((acc, d) => acc + (Number(d.amount) || 0), 0) || 1240000;
+    .reduce((acc, d) => acc + (Number(d.amount) || 0), 0);
 
-  const totalLitigationClaim = cases.reduce((acc, c) => acc + (Number(c.amount?.principal) || 0), 0) || 1850000;
-  const totalLitigationRecovered = cases.reduce((acc, c) => acc + (Number(c.amount?.recovered) || 0), 0) || 380000;
+  const totalLitigationClaim = cases.reduce((acc, c) => acc + (Number(c.amount?.principal) || 0), 0);
+  const totalLitigationRecovered = cases.reduce((acc, c) => acc + (Number(c.amount?.recovered) || 0), 0);
+  const litigationFees = cases.reduce((acc, c) => acc + (Number(c.amount?.legalFees) || 0) + (Number(c.amount?.bailiffFees) || 0), 0);
+  const guaranteesValue = cases.reduce((acc, c) => acc + (Number(c.collateral?.value) || 0), 0);
+  const lateOver30 = dossiers.filter(d => (Number(d.delay_days) || 0) > 30).length;
+  const par30 = dossiers.length > 0 ? Math.round((lateOver30 / dossiers.length) * 1000) / 10 : 0;
+  const deliveredLogs = relances.filter(r => r.status === 'delivered' || r.status === 'simulated').length;
+  const activeEscaladeRules = db.getEscalationRules().filter(r => r.active).length;
 
   res.json({
     portfolio: {
       outstanding: totalDossiers,
       overdue: overdueDossiers,
       recovered: totalRecovered,
-      overdueRate: totalDossiers > 0 ? Math.round((overdueDossiers / totalDossiers) * 100) : 21,
-      recoveryRate: totalDossiers > 0 ? Math.round((totalRecovered / totalDossiers) * 100) : 24,
-      totalExposures: dossiers.length || 18,
-      overdueExposures: dossiers.filter(d => (Number(d.delay_days) || 0) > 0).length || 8,
-      criticalExposures: dossiers.filter(d => d.risk_level === 'Critique').length || 3,
-      par30: 14.8,
+      overdueRate: totalDossiers > 0 ? Math.round((overdueDossiers / totalDossiers) * 100) : 0,
+      recoveryRate: totalDossiers > 0 ? Math.round((totalRecovered / totalDossiers) * 100) : 0,
+      totalExposures: dossiers.length,
+      overdueExposures: dossiers.filter(d => (Number(d.delay_days) || 0) > 0).length,
+      criticalExposures: dossiers.filter(d => d.risk_level === 'Critique').length,
+      par30,
       activeTaxonomyFilter: activePortfolio || null
     },
     recovery: {
-      totalCases: dossiers.length || 18,
-      inProgressCases: dossiers.filter(d => d.status === 'en_relance').length || 11,
+      totalCases: dossiers.length,
+      inProgressCases: dossiers.filter(d => d.status === 'en_relance').length,
       amountInRecovery: totalDossiers - totalRecovered,
       amountRecovered: totalRecovered,
-      overdueActions: dossiers.filter(d => (Number(d.delay_days) || 0) > 30).length || 5,
-      brokenPromises: 3,
-      fieldVisitsPlanned: 8
+      overdueActions: dossiers.filter(d => (Number(d.delay_days) || 0) > 30).length,
+      brokenPromises: 0,
+      fieldVisitsPlanned: 0
     },
     litigation: {
-      totalCases: cases.length || 12,
+      totalCases: cases.length,
       totalClaimAmount: totalLitigationClaim,
       totalRecoveredAmount: totalLitigationRecovered,
-      feesEngaged: 24500,
-      overdueActionsCount: 2,
-      totalGuaranteesValue: 680000
+      feesEngaged: litigationFees,
+      overdueActionsCount: 0,
+      totalGuaranteesValue: guaranteesValue
     },
     automation: {
-      sentToday: relances.length || 16,
-      successRate: 94,
-      activeWorkflows: 4,
+      sentToday: relances.length,
+      successRate: relances.length > 0 ? Math.round((deliveredLogs / relances.length) * 100) : 0,
+      activeWorkflows: activeEscaladeRules,
       errors: 0
     },
     kpis: {
-      totalRecovered: { value: totalRecovered, change: 12.4, target: 1800000 },
-      recoveryRate: { value: 72.8, change: 4.2, target: 75.0 },
-      dso: { value: 42, change: -5.1, target: 35 },
-      costPerDinar: { value: 0.045, change: -2.3, target: 0.040 }
+      totalRecovered: { value: totalRecovered, change: 0, target: 0 },
+      recoveryRate: { value: totalDossiers > 0 ? Math.round((totalRecovered / totalDossiers) * 1000) / 10 : 0, change: 0, target: 0 },
+      dso: { value: dossiers.length > 0 ? Math.round(dossiers.reduce((a, d) => a + (Number(d.delay_days) || 0), 0) / dossiers.length) : 0, change: 0, target: 0 },
+      costPerDinar: { value: 0, change: 0, target: 0 }
     },
     activityVolume: {
       activeCases: dossiers.length + cases.length,
       assignedDebt: totalDossiers,
-      collectedMonth: 128000,
-      successRateAmiable: 68.4,
-      successRateJudicial: 84.1
+      collectedMonth: 0,
+      successRateAmiable: 0,
+      successRateJudicial: 0
     }
   });
 });
 
 router.get('/tableau-de-bord-global/charts', (req, res) => {
   res.json({
+    // Lot P0 : les séries mensuelles restent des données de démonstration
+    // tant que l'agrégation historique n'est pas branchée sur la base (P1).
+    syntheticSeries: true,
     monthlyTrend: [
       { month: 'Jan', outstanding: 4500000, overdue: 950000, recovered: 180000, amiable: 45000, contentieux: 20000, cible: 60000 },
       { month: 'Fév', outstanding: 4700000, overdue: 1020000, recovered: 240000, amiable: 52000, contentieux: 35000, cible: 70000 },
@@ -129,8 +142,8 @@ router.get('/tableau-de-bord-global/charts', (req, res) => {
   });
 });
 
-router.get('/tableau-de-bord-global/critical-items', (req, res) => {
-  const dossiers = db.getDossiers();
+router.get('/tableau-de-bord-global/critical-items', async (req, res) => {
+  const dossiers = await scopedDossiers(req.auth?.institution || null);
   const cases = db.getLitigationCases();
 
   const mappedDossiers = dossiers
@@ -176,7 +189,9 @@ router.post('/tableau-de-bord-global/ai-analysis', async (req, res) => {
     }
   }
 
-  const fallbackText = `### Audit Exécutif de Pilotage - RecovAI
+  const fallbackText = `> ⚠️ **Texte de démonstration** — aucun modèle d'analyse n'a été exécuté (clé GEMINI_API_KEY non configurée). À ne pas utiliser pour une décision réelle.
+
+### Audit Exécutif de Pilotage - RecovAI
 
 1. **Performance Portefeuille**:
 Le recouvrement consolidé affiche une hausse de **+12.4%**, tiré par le dénouement amiable des dossiers de Factoring et les protocoles transactionnels.
@@ -199,8 +214,8 @@ Le recouvrement consolidé affiche une hausse de **+12.4%**, tiré par le dénou
 // ==========================================
 // 2. INDICATEURS RECOUVREMENT
 // ==========================================
-router.get('/indicateurs-recouvrement/summary', (req, res) => {
-  const dossiers = db.getDossiers();
+router.get('/indicateurs-recouvrement/summary', async (req, res) => {
+  const dossiers = await scopedDossiers(req.auth?.institution || null);
   const totalDossiers = dossiers.reduce((acc, d) => acc + (Number(d.amount) || 0), 0) || 4280000;
   const totalRecovered = dossiers.reduce((acc, d) => acc + (Number(d.recovered_amount) || 0), 0) || 980000;
 
@@ -252,8 +267,8 @@ router.get('/indicateurs-recouvrement/charts', (req, res) => {
   });
 });
 
-router.get('/indicateurs-recouvrement/table', (req, res) => {
-  const dossiers = db.getDossiers();
+router.get('/indicateurs-recouvrement/table', async (req, res) => {
+  const dossiers = await scopedDossiers(req.auth?.institution || null);
   const mapped = dossiers.map(d => ({
     ...d,
     id: d.id,
@@ -290,7 +305,10 @@ router.post('/indicateurs-recouvrement/ai-analysis', async (req, res) => {
   }
 
   res.json({
-    result: `### Analyse IA du Recouvrement Amiable
+    demoFallback: true,
+    result: `> ⚠️ **Texte de démonstration** — aucun modèle d'analyse n'a été exécuté. À ne pas utiliser pour une décision réelle.
+
+### Analyse IA du Recouvrement Amiable
 
 1. **Taux de concrétisation des promesses**:
 Le taux de promesses tenues est satisfaisant (85%), toutefois 2 promesses rompues nécessitent un réengagement téléphonique sous 24 heures.
@@ -304,8 +322,8 @@ Les dossiers ayant dépassé 60 jours de retard sans protocole doivent être imm
   });
 });
 
-router.get('/indicateurs-recouvrement/export', (req, res) => {
-  const dossiers = db.getDossiers();
+router.get('/indicateurs-recouvrement/export', async (req, res) => {
+  const dossiers = await scopedDossiers(req.auth?.institution || null);
   let csv = 'Code,Debiteur,Montant,Recouvre,Statut,Echeance,Portefeuille\n';
   dossiers.forEach(d => {
     csv += `"${d.client_code}","${d.debtor_name}",${d.amount},${d.recovered_amount},"${d.status}","${d.due_date}","${d.portfolio}"\n`;
@@ -427,9 +445,9 @@ router.get('/indicateurs-contentieux/charts', (req, res) => {
     ],
     byOfficer: [
       { name: 'Me Ben Salem', count: 6 },
-      { name: 'Me Trabelsi', count: 5 },
-      { name: 'Me Karray', count: 4 },
-      { name: 'Me Mansour', count: 3 }
+      { name: 'Me Demo A', count: 5 },
+      { name: 'Me Demo B', count: 4 },
+      { name: 'Me Demo C', count: 3 }
     ],
     repartitionEtapes: [
       { etape: 'Pré-contentieux', count: 4, montant: 420000 },
@@ -457,7 +475,10 @@ router.post('/indicateurs-contentieux/ai-analysis', async (req, res) => {
   }
 
   res.json({
-    result: `### Synthèse Tactique Contentieuse
+    demoFallback: true,
+    result: `> ⚠️ **Texte de démonstration** — aucun modèle d'analyse n'a été exécuté. À ne pas utiliser pour une décision réelle.
+
+### Synthèse Tactique Contentieuse
 
 1. **Procédure d'Injonction de Payer**:
 Accélérer la notification des ordonnances de taxe et d'injonction de payer par les huissiers de justice afin d'écourter le délai d'opposition de 20 jours.
@@ -533,11 +554,11 @@ router.get('/rapports/generated', (req, res) => {
     { 
       id: 'gen-1', 
       reportId: 'rep-1', 
-      name: 'Synthèse Mensuelle - Mai 2026', 
+      name: 'Synthèse Mensuelle - Mai 2026 (DEMO)', 
       file_name: 'synthese_mensuelle_mai_2026.pdf',
       format: 'pdf', 
       generated_at: '2026-05-30T10:30:00Z', 
-      generated_by: 'Ahmed Ben Salah', 
+      generated_by: 'Agent Démo 01', 
       status: 'Terminé' 
     },
     { 
@@ -553,7 +574,7 @@ router.get('/rapports/generated', (req, res) => {
     { 
       id: 'gen-3', 
       reportId: 'rep-3', 
-      name: 'Matrice Déclassement BCT Q1', 
+      name: 'Matrice Déclassement BCT Q1 (DEMO)', 
       file_name: 'matrice_bct_q1_2026.pdf',
       format: 'pdf', 
       generated_at: '2026-05-20T09:00:00Z', 
@@ -574,7 +595,7 @@ router.post('/rapports/:id/generate', (req, res) => {
   const id = req.params.id;
   const genId = `gen-${Date.now()}`;
   const format = req.body?.format || 'pdf';
-  const userEmail = req.body?.userEmail || 'Ahmed Ben Salah';
+  const userEmail = req.auth?.email || 'système';
 
   res.json({
     id: genId,
@@ -592,16 +613,30 @@ router.post('/rapports/:id/generate', (req, res) => {
 });
 
 router.post('/rapports/:id/ai-analysis', async (req, res) => {
-  res.json({
-    result: 'Le rapport a été validé selon les critères prudentiels de la Banque Centrale de Tunisie avec une couverture des provisions à 100% sur les créances douteuses.',
-    source: 'recovai-bi-engine'
-  });
+  // Lot P0 : suppression de la « validation prudentielle BCT » fabriquée.
+  // Si une clé IA est configurée, une analyse réelle est produite (à but d'aide
+  // à la décision uniquement) ; sinon la route renvoie honnêtement une erreur.
+  if (process.env.GEMINI_API_KEY) {
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: `Rédige une revue critique d'aide à la décision (jamais une certification) du rapport ${req.params.id} pour une direction du risque bancaire tunisienne : points de contrôle, anomalies possibles, limites. Réponds en français, en 6 lignes maximum.`
+      });
+      return res.json({ result: response.text || '', source: 'gemini-2.5-flash', decision_support_only: true });
+    } catch (e: any) {
+      console.warn('[AI Rapports error]', e.message);
+      return res.status(502).json({ error: "Analyse IA indisponible (erreur fournisseur).", decision_support_only: true });
+    }
+  }
+  return res.status(503).json({ error: "Analyse IA non configurée (GEMINI_API_KEY absente). Aucune validation prudentielle automatique n'est produite.", decision_support_only: true });
 });
 
 router.get('/rapports/generated/:id/download', (req, res) => {
   res.setHeader('Content-Type', 'text/plain');
   res.setHeader('Content-Disposition', `attachment; filename="rapport_recovai_${req.params.id}.txt"`);
-  res.send(`RECOVAI - RAPPORT OFFICIEL D'AUDIT ET DE RECOUVREMENT\nGénéré le: ${new Date().toLocaleString('fr-TN')}\nStatut: Certifié conforme normes BCT & Bâle III\n`);
+  audit('REPORT_DOWNLOAD', `Téléchargement du rapport ${req.params.id}`, req.auth);
+  res.send(`RECOVAI - Rapport d'audit et de recouvrement (environnement de démonstration)\nGénéré le: ${new Date().toLocaleString('fr-TN')}\nPar: ${req.auth?.email || 'anonyme'}\n\nAvertissement : document produit par un outil d'aide à la décision. Il ne constitue ni une certification, ni une validation par un auditeur, ni un dépôt réglementaire.\n`);
 });
 
 export default router;

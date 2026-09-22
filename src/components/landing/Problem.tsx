@@ -21,8 +21,8 @@ const cards = [
   },
   {
     img: cardContact,
-    title: 'Conformité BCT & CTAF',
-    desc: "Veille réglementaire des circulaires BCT/CTAF et reporting prêt pour le régulateur. Restez aligné sans effort de production manuelle.",
+    title: 'Assistance Conformité BCT & CTAF',
+    desc: "Veille des circulaires BCT/CTAF et reporting structuré pour vos revues réglementaires. RecovAI assiste vos équipes de conformité ; il ne se substitue ni à elles, ni à vos auditeurs.",
     href: '#features',
     cta: 'Voir le reporting',
   },

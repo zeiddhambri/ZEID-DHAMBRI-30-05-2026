@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { db } from '../db/dataStore';
+import { audit } from '../auth';
 
 const router = Router();
 
@@ -177,11 +178,8 @@ router.post('/core-banking/trigger-sync', (req, res) => {
     details: `Synchronisation ${scope} exécutée avec succès pour ${connector.name}. ${simulatedUpdatedCount} dossiers réconciliés.`,
     created_at: new Date().toISOString()
   };
-  try {
-    db.addAuditLog(auditEntry);
-  } catch (e) {
-    // Continue
-  }
+  // Idem : journal d'audit serveur (auteur = compte qui déclenche le sync).
+  audit(auditEntry.action, auditEntry.details, req.auth);
 
   res.json({
     success: true,

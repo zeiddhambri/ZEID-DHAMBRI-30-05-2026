@@ -350,7 +350,7 @@ export default function FactoringRequests({ invoices, debtors, requests, onSubmi
                     <Signature size={20} />
                   </div>
                   <div>
-                    <DialogTitle className="font-syne text-lg text-navy">Signature Électronique Certifiée BCT</DialogTitle>
+                    <DialogTitle className="font-syne text-lg text-navy">Signature Électronique (simulation de démonstration)</DialogTitle>
                     <DialogDescription className="text-xs">
                       Procédure de validation cryptographique et d'idempotence financière.
                     </DialogDescription>

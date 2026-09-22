@@ -3,6 +3,8 @@ import path from 'path';
 import { createServer as createViteServer } from 'vite';
 
 // Routers
+import authRouter from './server/routes/auth';
+import auditRouter from './server/routes/audit';
 import healthRouter from './server/routes/health';
 import dossiersRouter from './server/routes/dossiers';
 import portefeuillesRouter from './server/routes/portefeuilles';
@@ -15,44 +17,56 @@ import institutionsRouter from './server/routes/institutions';
 import integrationsRouter from './server/routes/integrations';
 import enterpriseSecurityRouter from './server/routes/enterpriseSecurity';
 import supabaseCompatRouter from './server/routes/supabaseCompat';
+import exportRouter from './server/routes/export';
 
-async function startServer() {
+// Durcissement lot P0 (voir docs/ANALYSE-PRESENTATION-INSTITUTIONS-FINANCIERES.md)
+import { requireAuth, rateLimit } from './server/auth';
+import { corsAllowlist, securityHeaders } from './server/security';
+
+/** Fabrique l'application Express (sans listen) — réutilisée par les tests d'intégration. */
+export async function createApp(): Promise<import('express').Express> {
   const app = express();
-  const PORT = 3000;
 
-  // Global Middlewares
-  app.use(express.json({ limit: '10mb' }));
-  app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+  app.disable('x-powered-by');
 
-  // Basic CORS headers
-  app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, apiKey, prefer');
-    if (req.method === 'OPTIONS') {
-      return res.sendStatus(200);
-    }
-    next();
-  });
+  // En-têtes de sécurité + CORS par allowlist (remplace l'ancien wildcard '*').
+  app.use(securityHeaders());
+  app.use(corsAllowlist());
 
-  // Mount API Domain Routes
+  // Parsing JSON borné : 2 Mo par défaut (les imports volumineux passent par des
+  // connecteurs batch au lot P1, pas par le corps d'une requête web).
+  app.use(express.json({ limit: '2mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '512kb' }));
+
+  // Limite globale de débit par IP sur l'API (protection anti-harvesting/brute-force).
+  const apiRateLimit = rateLimit(300, 60_000);
+  app.use('/api', apiRateLimit);
+  app.use('/rest/v1', apiRateLimit);
+
+  // --- Routes publiques (authentification + supervision minimale) ---
+  app.use('/api/auth', authRouter);
   app.use('/api', healthRouter);
-  app.use('/api/dossiers', dossiersRouter);
-  app.use('/api/portefeuilles', portefeuillesRouter);
-  app.use('/api/contentieux', contentieuxRouter);
-  app.use('/api/relances', relancesRouter);
-  app.use('/api/credit-ifrs9', creditIfrs9Router);
-  app.use('/api/clients', clientsRouter);
-  app.use('/api/pilotage', pilotageRouter);
-  app.use('/api/institutions', institutionsRouter);
-  app.use('/api/integrations', integrationsRouter);
-  app.use('/api/enterprise', enterpriseSecurityRouter);
+  // --- Routes métier protégées : jeton Bearer obligatoire + RBAC par rôle ---
+  app.use('/api/audit', auditRouter);
+  app.use('/api/dossiers', requireAuth, dossiersRouter);
+  app.use('/api/portefeuilles', requireAuth, portefeuillesRouter);
+  app.use('/api/contentieux', requireAuth, contentieuxRouter);
+  app.use('/api/relances', requireAuth, relancesRouter);
+  app.use('/api/credit-ifrs9', requireAuth, creditIfrs9Router);
+  app.use('/api/clients', requireAuth, clientsRouter);
+  app.use('/api/pilotage', requireAuth, pilotageRouter);
+  app.use('/api/institutions', requireAuth, institutionsRouter);
+  app.use('/api/integrations', requireAuth, integrationsRouter);
+  app.use('/api/enterprise', requireAuth, enterpriseSecurityRouter);
+  app.use('/api/export', requireAuth, exportRouter);
 
-  // Supabase PostgREST compatibility layer (enables supabase.from() to hit the backend directly)
-  app.use('/rest/v1', supabaseCompatRouter);
+  // Supabase PostgREST compatibility layer — protégée également.
+  app.use('/rest/v1', requireAuth, supabaseCompatRouter);
 
   // Vite middleware for development vs static build in production
-  if (process.env.NODE_ENV !== 'production') {
+  if (process.env.RECOVAI_SKIP_VITE === '1') {
+    // tests d'intégration : ni Vite ni statiques
+  } else if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
@@ -66,9 +80,18 @@ async function startServer() {
     });
   }
 
+  return app;
+}
+
+async function startServer() {
+  const app = await createApp();
+  const PORT = Number(process.env.PORT) || 3000;
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`[RecovAI Server] Backend running at http://0.0.0.0:${PORT}`);
+    console.log(`[RecovAI Server] Backend running at http://0.0.0.0:${PORT} (API protégée par jeton — POST /api/auth/login)`);
   });
 }
 
-startServer();
+// Le serveur ne se lance que s'il est exécuté directement (importable par les tests).
+if (process.env.RECOVAI_NO_LISTEN !== '1') {
+  startServer();
+}

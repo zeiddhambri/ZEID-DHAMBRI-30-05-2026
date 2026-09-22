@@ -1212,7 +1212,7 @@ export default function Client360() {
                   <div className="p-4 rounded-xl border border-border bg-white shadow-2xs space-y-3">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">Génération d'Acte Juridique</h4>
                     <p className="text-xs text-slate-600">
-                      Génère la requête d'injonction de payer certifiée pour les tribunaux tunisiens.
+                      Génère un brouillon de requête d'injonction de payer (relecture par l'avocat obligatoire avant dépôt au tribunal).
                     </p>
                     <button
                       onClick={() => handleActionToast('Requête Injonction de Payer')}

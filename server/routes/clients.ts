@@ -1,17 +1,18 @@
 import { Router } from 'express';
 import { db } from '../db/dataStore';
+import { scopedDossiers } from '../db/repo';
 
 const router = Router();
 
 // GET search clients across all portfolios
-router.get('/search', (req, res) => {
+router.get('/search', async (req, res) => {
   const q = String(req.query.q || '').trim().toLowerCase();
 
   if (!q) {
     return res.json({ count: 0, results: [] });
   }
 
-  const dossiers = db.getDossiers();
+  const dossiers = await scopedDossiers(req.auth?.institution || null);
   const leasing = db.getLeasing();
   const factoringDebtors = db.getFactoringDebtors();
   const litigation = db.getLitigationCases();
@@ -109,10 +110,10 @@ router.get('/search', (req, res) => {
 });
 
 // GET 360-degree debtor profile
-router.get('/:nameOrId/profile', (req, res) => {
+router.get('/:nameOrId/profile', async (req, res) => {
   const target = decodeURIComponent(req.params.nameOrId).trim().toLowerCase();
 
-  const dossiers = db.getDossiers().filter(d =>
+  const dossiers = (await scopedDossiers(req.auth?.institution || null)).filter(d =>
     (d.debtor_name || '').toLowerCase().includes(target) ||
     (d.client_code || '').toLowerCase() === target
   );

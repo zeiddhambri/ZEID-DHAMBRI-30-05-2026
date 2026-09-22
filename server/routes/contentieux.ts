@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { db } from '../db/dataStore';
+import { audit } from '../auth';
+import { validate, createLitigationSchema, lawyerBailiffSchema } from '../validation';
 
 const router = Router();
 
@@ -81,12 +83,8 @@ router.get('/dossiers/:id', (req, res) => {
 });
 
 // POST create new litigation case
-router.post('/dossiers', (req, res) => {
+router.post('/dossiers', validate(createLitigationSchema), (req, res) => {
   const { debtor_name, amount, lawyer_id, bailiff_id, procedure_type, portfolio, court_level, observations, guarantee } = req.body;
-
-  if (!debtor_name || !amount) {
-    return res.status(400).json({ error: 'Le nom du débiteur et le montant de la créance sont obligatoires' });
-  }
 
   const cases = db.getLitigationCases();
   const year = new Date().getFullYear();
@@ -148,6 +146,8 @@ router.post('/dossiers', (req, res) => {
   cases.unshift(newCase);
   db.save();
 
+  audit('CREATE_LITIGATION', `Ouverture du dossier contentieux ${newCase.id} (${debtor_name}, ${Number(amount).toLocaleString('fr-TN')} TND)`, req.auth);
+
   res.status(201).json(newCase);
 });
 
@@ -173,6 +173,8 @@ router.patch('/dossiers/:id', (req, res) => {
 
   found.lastUpdate = new Date().toISOString().slice(0, 10);
   db.save();
+
+  audit('UPDATE_LITIGATION', `Mise à jour du dossier contentieux ${found.id} (étape: ${found.stage})`, req.auth);
 
   res.json(found);
 });

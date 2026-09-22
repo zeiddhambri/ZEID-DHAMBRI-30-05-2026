@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { audit } from '../auth';
 import { RelationalDatabaseManager } from '../db/relationalManager';
 import { CryptoEngine } from '../lib/cryptoEngine';
 import {
@@ -174,11 +175,9 @@ router.post('/crypto/rotate-dek', (req, res) => {
     details: `Rotation de la clé de chiffrement DEK effectuée avec succès vers ${newKeyId}. Validité 180 jours.`,
     created_at: new Date().toISOString()
   };
-  try {
-    db.addAuditLog(auditEntry);
-  } catch (e) {
-    // continue
-  }
+  // Journal d'audit du serveur (auteur authentifié + chaînage) — l'appel
+  // db.addAuditLog() de la branche main visait une méthode inexistante.
+  audit(auditEntry.action, auditEntry.details, req.auth);
 
   res.json({
     success: true,

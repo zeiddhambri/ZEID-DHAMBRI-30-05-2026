@@ -127,12 +127,12 @@ export interface LitigationCase {
 
 // ─── Sample lawyers / bailiffs ───
 const LAWYERS: Party[] = [
-  { id: 'l1', name: 'Maître Sonia Trabelsi', firm: 'Cabinet Trabelsi & Associés', phone: '+216 71 123 456', email: 's.trabelsi@cabinet-trabelsi.tn' },
-  { id: 'l2', name: 'Maître Karim Belhaj',   firm: 'BLG Avocats',                phone: '+216 71 654 321', email: 'k.belhaj@blg-avocats.tn' },
+  { id: 'l1', name: 'Maître Demo Alpha', firm: 'Cabinet Demo Alpha', phone: '+216 30 000 000', email: 'contact@cabinet-demo-alpha.example.test' },
+  { id: 'l2', name: 'Maître Demo Bravo',   firm: 'Cabinet Demo Bravo',                phone: '+216 30 000 000', email: 'contact@cabinet-demo-bravo.example.test' },
 ];
 const BAILIFFS: Party[] = [
-  { id: 'b1', name: 'Mehdi Ouali',  firm: 'Étude Ouali',     phone: '+216 71 555 010', email: 'contact@etude-ouali.tn' },
-  { id: 'b2', name: 'Fatma Zribi',  firm: 'Étude Zribi',     phone: '+216 71 777 020', email: 'f.zribi@etude-zribi.tn' },
+  { id: 'b1', name: 'Huissier Demo 1',  firm: 'Étude Demo Nord',     phone: '+216 30 000 000', email: 'contact@etude-demo-nord.example.test' },
+  { id: 'b2', name: 'Huissier Demo 2',  firm: 'Étude Demo Centre',     phone: '+216 30 000 000', email: 'contact@etude-demo-centre.example.test' },
 ];
 
 const COURTS = [
@@ -145,7 +145,7 @@ const COURTS = [
 export const litigationCases: LitigationCase[] = [
   {
     id: 'LIT-2024-0001',
-    debtor: { id: 'D-145', name: 'SOCIETE ALPHA SARL', siren: '0123456789', address: '12 Rue de la République', city: 'Tunis', zip: '1000', contact: 'M. Slim Bargaoui', email: 'contact@alpha-sarl.tn' },
+    debtor: { id: 'D-145', name: 'DEBITEUR ALPHA DEMO', siren: '0123456789', address: '12 Rue de la République', city: 'Tunis', zip: '1000', contact: 'M. Contact Demo 1', email: 'contact@demo-sarl.example.test' },
     type: 'payment_injunction',
     stage: 'in_process',
     filingDate: '2024-01-15',
@@ -185,7 +185,7 @@ export const litigationCases: LitigationCase[] = [
   },
   {
     id: 'LIT-2024-0002',
-    debtor: { id: 'D-201', name: 'BEN SALEM AHMED', address: '4 Avenue Habib Bourguiba', city: 'Sousse', zip: '4000', email: 'ahmed.bensalem@gmail.com' },
+    debtor: { id: 'D-201', name: 'PARTICULIER DEMO 01', address: '4 Avenue Habib Bourguiba', city: 'Sousse', zip: '4000', email: 'particulier.demo@example.test' },
     type: 'payment_injunction',
     stage: 'enforcement',
     filingDate: '2023-11-20',
@@ -195,15 +195,15 @@ export const litigationCases: LitigationCase[] = [
     interestRate: 5.6,
     lawyer: LAWYERS[1],
     bailiff: BAILIFFS[1],
-    manager: 'Sami K.',
+    manager: 'Agent Démo 2',
     invoices: [{ ref: 'FAC-2023-051', date: '2023-04-01', dueDate: '2023-05-01', amount: 22000 }],
     hearings: [
       { id: 'h3', date: '2024-01-10', time: '14:00', court: COURTS[2].name, type: 'Délibéré', status: 'held' },
     ],
     events: [
-      { id: 'e6', date: '2023-11-20', type: 'opened',           description: 'Ouverture du dossier',                author: 'Sami K.' },
+      { id: 'e6', date: '2023-11-20', type: 'opened',           description: 'Ouverture du dossier',                author: 'Agent Démo 2' },
       { id: 'e7', date: '2024-01-10', type: 'judgment',         description: 'Jugement favorable rendu',            author: 'Maître Belhaj' },
-      { id: 'e8', date: '2024-03-15', type: 'document_filed',   description: 'Saisie-attribution diligentée',       author: 'Étude Zribi' },
+      { id: 'e8', date: '2024-03-15', type: 'document_filed',   description: 'Saisie-attribution diligentée',       author: 'Étude Demo Centre' },
       { id: 'e9', date: '2024-04-05', type: 'payment',          description: 'Paiement partiel reçu : 5 000 TND',  author: 'Système' },
     ],
     documents: [
@@ -211,7 +211,7 @@ export const litigationCases: LitigationCase[] = [
       { id: 'd6', name: 'Procès-verbal de saisie.pdf',    type: 'uploaded',  category: 'Exécution',date: '2024-03-15', status: 'filed', size: '180 Ko' },
     ],
     notes: [
-      { id: 'n3', date: '2024-04-05', author: 'Sami K.', content: 'Solde restant 19 270 TND. Plan d\'apurement à proposer.', visibility: 'internal' },
+      { id: 'n3', date: '2024-04-05', author: 'Agent Démo 2', content: 'Solde restant 19 270 TND. Plan d\'apurement à proposer.', visibility: 'internal' },
     ],
     payments: [
       { id: 'p1', date: '2024-04-05', amount: 5000, reference: 'VIR-04052024', type: 'partial' },
@@ -219,7 +219,7 @@ export const litigationCases: LitigationCase[] = [
   },
   {
     id: 'LIT-2024-0003',
-    debtor: { id: 'D-318', name: 'GLOBAL TECH TUNISIE', siren: '0987654321', address: '15 Rue du Lac', city: 'Tunis', zip: '1053', contact: 'Mme Nadia Trabelsi' },
+    debtor: { id: 'D-318', name: 'TECH GLOBAL DEMO', siren: '0987654321', address: '15 Rue du Lac', city: 'Tunis', zip: '1053', contact: 'Mme Contact Demo 2' },
     type: 'summary_proceedings',
     stage: 'pre_litigation',
     filingDate: '2024-04-01',
@@ -229,12 +229,12 @@ export const litigationCases: LitigationCase[] = [
     interestRate: 5.6,
     lawyer: LAWYERS[0],
     bailiff: BAILIFFS[0],
-    manager: 'Leila M.',
+    manager: 'Agent Démo 3',
     invoices: [{ ref: 'FAC-2024-009', date: '2024-01-15', dueDate: '2024-02-15', amount: 320000 }],
     hearings: [],
     events: [
-      { id: 'e10', date: '2024-04-01', type: 'opened',         description: 'Ouverture pré-contentieux',     author: 'Leila M.' },
-      { id: 'e11', date: '2024-04-15', type: 'document_filed', description: 'Mise en demeure générée',       author: 'Leila M.' },
+      { id: 'e10', date: '2024-04-01', type: 'opened',         description: 'Ouverture pré-contentieux',     author: 'Agent Démo 3' },
+      { id: 'e11', date: '2024-04-15', type: 'document_filed', description: 'Mise en demeure générée',       author: 'Agent Démo 3' },
     ],
     documents: [
       { id: 'd7', name: 'Mise en demeure - GLOBAL TECH.pdf', template: 'mise_en_demeure', type: 'generated', category: 'Lettre', date: '2024-04-15', status: 'draft', size: '118 Ko' },
@@ -244,7 +244,7 @@ export const litigationCases: LitigationCase[] = [
   },
   {
     id: 'LIT-2024-0004',
-    debtor: { id: 'D-422', name: 'KARIM ENTERPRISES', siren: '5566778899', address: '8 Rue Ibn Khaldoun', city: 'Sfax', zip: '3000' },
+    debtor: { id: 'D-422', name: 'ENTREPRISE K DEMO', siren: '5566778899', address: '8 Rue Ibn Khaldoun', city: 'Sfax', zip: '3000' },
     type: 'payment_injunction',
     stage: 'judgment_obtained',
     filingDate: '2023-09-10',
@@ -254,13 +254,13 @@ export const litigationCases: LitigationCase[] = [
     interestRate: 5.6,
     lawyer: LAWYERS[1],
     bailiff: BAILIFFS[1],
-    manager: 'Ahmed B.',
+    manager: 'Agent Démo 1',
     invoices: [{ ref: 'FAC-2023-088', date: '2023-06-15', dueDate: '2023-07-15', amount: 56000 }],
     hearings: [
       { id: 'h4', date: '2024-03-20', time: '11:00', court: COURTS[1].name, type: 'Délibéré', status: 'held' },
     ],
     events: [
-      { id: 'e12', date: '2023-09-10', type: 'opened',           description: 'Ouverture du dossier',         author: 'Ahmed B.' },
+      { id: 'e12', date: '2023-09-10', type: 'opened',           description: 'Ouverture du dossier',         author: 'Agent Démo 1' },
       { id: 'e13', date: '2024-03-20', type: 'judgment',         description: 'Jugement favorable',            author: 'Maître Belhaj' },
     ],
     documents: [
@@ -271,7 +271,7 @@ export const litigationCases: LitigationCase[] = [
   },
   {
     id: 'LIT-2024-0005',
-    debtor: { id: 'D-501', name: 'MEDITERANEE INVEST', siren: '1122334455', address: '3 Avenue de Carthage', city: 'Tunis', zip: '1001' },
+    debtor: { id: 'D-501', name: 'FONDS MARINA DEMO', siren: '1122334455', address: '3 Avenue de Carthage', city: 'Tunis', zip: '1001' },
     type: 'summary_proceedings',
     stage: 'injunction_filed',
     filingDate: '2024-02-28',
@@ -281,13 +281,13 @@ export const litigationCases: LitigationCase[] = [
     interestRate: 5.6,
     lawyer: LAWYERS[0],
     bailiff: BAILIFFS[0],
-    manager: 'Nadia T.',
+    manager: 'Agent Démo 4',
     invoices: [{ ref: 'FAC-2024-002', date: '2024-01-05', dueDate: '2024-02-05', amount: 89000 }],
     hearings: [
       { id: 'h5', date: '2024-06-12', time: '09:00', court: COURTS[0].name, type: 'Plaidoirie', status: 'scheduled' },
     ],
     events: [
-      { id: 'e14', date: '2024-02-28', type: 'opened',           description: 'Ouverture du dossier',         author: 'Nadia T.' },
+      { id: 'e14', date: '2024-02-28', type: 'opened',           description: 'Ouverture du dossier',         author: 'Agent Démo 4' },
       { id: 'e15', date: '2024-04-12', type: 'document_filed',   description: 'Requête déposée au greffe',    author: 'Maître Trabelsi' },
     ],
     documents: [
@@ -298,7 +298,7 @@ export const litigationCases: LitigationCase[] = [
   },
   {
     id: 'LIT-2023-0078',
-    debtor: { id: 'D-098', name: 'STAR LOGISTIQUE', siren: '6677889900', address: '20 Rue de Marseille', city: 'Tunis', zip: '1002' },
+    debtor: { id: 'D-098', name: 'ETOILE LOGISTIQUE DEMO', siren: '6677889900', address: '20 Rue de Marseille', city: 'Tunis', zip: '1002' },
     type: 'payment_injunction',
     stage: 'closed_recovered',
     filingDate: '2023-05-12',
@@ -336,7 +336,7 @@ export const CREDITOR = {
   address: 'Avenue Mohamed V, Tour Banque Centrale',
   city: 'Tunis',
   zip: '1001',
-  phone: '+216 71 100 200',
+  phone: '+216 30 000 000',
   email: 'contentieux@recovai.com',
   siren: 'TN-RC-B112233',
   rib: 'TN59 0000 0000 1234 5678 9012',

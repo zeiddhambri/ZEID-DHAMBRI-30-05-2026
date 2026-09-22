@@ -2,34 +2,39 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, DEMO_MODE_ALLOWED } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, ShieldAlert } from 'lucide-react';
 
 const emailSchema = z.string().trim().email({ message: 'Adresse email invalide' }).max(255);
 const passwordSchema = z
   .string()
   .min(8, { message: 'Le mot de passe doit contenir au moins 8 caractères' })
   .max(72, { message: 'Mot de passe trop long' });
-const nameSchema = z.string().trim().min(2, { message: 'Nom trop court' }).max(100);
+const nameSchema = z.string().trim().min(2).max(100);
+
+const SUPABASE_CONFIGURED = Boolean(import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_URL.trim() !== '');
 
 export default function Auth() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, loading: authLoading, signInWithDemo } = useAuth();
+  const { user, loading: authLoading, signInWithDemo, signInWithToken } = useAuth();
   const redirectTo = (location.state as { from?: string } | null)?.from || '/dashboard';
 
+  // Mode démo : uniquement si l'instance est explicitement marquée démonstration.
+  // Aucun fallback automatique n'existe plus : un échec d'authentification échoue.
   const handleDemoSignIn = (role: 'agent' | 'admin' = 'agent') => {
+    if (!DEMO_MODE_ALLOWED) return;
     if (role === 'admin') {
       signInWithDemo("admin@recovai.tn", "Administrateur Principal (Démo)");
-      toast({ title: 'Mode Administrateur Activé', description: 'Connexion réussie en tant qu\'administrateur.' });
+      toast({ title: 'Mode Administrateur Activé', description: 'Connexion de démonstration — instance isolée.' });
     } else {
       signInWithDemo("demo-agent@recovai.tn", "Agent de Recouvrement (Démo)");
-      toast({ title: 'Mode Démo Activé', description: 'Connexion réussie en tant qu\'agent de démonstration.' });
+      toast({ title: 'Mode Démo Activé', description: 'Connexion de démonstration — instance isolée.' });
     }
     navigate(redirectTo, { replace: true });
   };
@@ -51,6 +56,21 @@ export default function Auth() {
     if (!authLoading && user) navigate(redirectTo, { replace: true });
   }, [user, authLoading, navigate, redirectTo]);
 
+  const serverLogin = async (email: string, password: string): Promise<boolean> => {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}) as any);
+      throw new Error(body?.error || `Échec de connexion (HTTP ${res.status})`);
+    }
+    const data = await res.json();
+    signInWithToken(data.token, data.user, data.expiresAt);
+    return true;
+  };
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -67,39 +87,29 @@ export default function Auth() {
 
     setSubmitting(true);
     try {
-      // 2. Attempt authentication
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: emailParse.data,
-        password: signInPassword,
-      });
-
-      if (error) {
-        throw error;
+      // 2. Voie Supabase si un projet réel est configuré, sinon (ou en cas d'échec)
+      //    la voie backend RecovAI. En cas d'échec : message d'erreur, AUCUN contournement.
+      if (SUPABASE_CONFIGURED) {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: emailParse.data,
+          password: signInPassword,
+        });
+        if (!error && data?.session) {
+          toast({ title: 'Bienvenue', description: 'Connexion réussie.' });
+          navigate(redirectTo, { replace: true });
+          return;
+        }
       }
 
-      // Check if session token actually exists
-      if (!data?.session) {
-        throw new Error("Pas de session active");
-      }
-
+      await serverLogin(emailParse.data, signInPassword);
       toast({ title: 'Bienvenue', description: 'Connexion réussie.' });
       navigate(redirectTo, { replace: true });
     } catch (error: any) {
-      console.warn("Authentication failed, falling back to instant demo mode for seamless experience:", error);
-
-      // Extract a nice name from email
-      const extractedName = emailParse.data.split('@')[0]
-        .split('.')
-        .map(p => p.charAt(0).toUpperCase() + p.slice(1))
-        .join(' ');
-
-      signInWithDemo(emailParse.data, `${extractedName} (Démo)`);
-
       toast({
-        title: 'Connexion en Mode Démo',
-        description: 'Connexion réussie en mode hors-ligne sans base de données.',
+        title: 'Échec de la connexion',
+        description: error?.message || 'Identifiants invalides. Contactez votre administrateur.',
+        variant: 'destructive',
       });
-      navigate(redirectTo, { replace: true });
     } finally {
       setSubmitting(false);
     }
@@ -124,9 +134,18 @@ export default function Auth() {
       return;
     }
 
+    if (!SUPABASE_CONFIGURED) {
+      toast({
+        title: 'Création de compte indisponible',
+        description: 'Aucun annuaire n\'est connecté sur cette instance. La création de comptes passe par l\'administrateur (SSO de l\'institution à venir).',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setSubmitting(true);
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email: emailParse.data,
         password: pwParse.data,
         options: {
@@ -135,22 +154,16 @@ export default function Auth() {
         },
       });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      toast({ title: 'Compte créé', description: 'Vous êtes maintenant connecté.' });
-      navigate('/dashboard', { replace: true });
+      toast({ title: 'Compte créé', description: 'Vérifiez votre boîte email pour confirmer votre inscription.' });
+      navigate(redirectTo, { replace: true });
     } catch (error: any) {
-      console.warn("Registration failed, falling back to instant demo mode for seamless experience:", error);
-
-      signInWithDemo(emailParse.data, `${nameParse.data} (Démo)`);
-
       toast({
-        title: 'Compte créé en Mode Démo',
-        description: 'Bienvenue ! Vous êtes maintenant connecté sous un profil de démonstration hors-ligne.',
+        title: 'Inscription impossible',
+        description: error?.message || 'Le service d\'annuaire est momentanément indisponible.',
+        variant: 'destructive',
       });
-      navigate('/dashboard', { replace: true });
     } finally {
       setSubmitting(false);
     }
@@ -163,6 +176,12 @@ export default function Auth() {
           <ArrowLeft size={16} /> Retour à l'accueil
         </Link>
       </header>
+
+      {DEMO_MODE_ALLOWED && (
+        <div className="bg-amber-100 border-y border-amber-300 text-amber-900 text-xs font-semibold px-4 py-2 text-center">
+          ⚠ ENVIRONNEMENT DE DÉMONSTRATION — données synthétiques, aucune donnée client réelle. Instance non sécurisée à usage de présentation uniquement.
+        </div>
+      )}
 
       <main className="flex-1 flex items-center justify-center px-4 pb-12">
         <div className="w-full max-w-md bg-white border border-border rounded-sm shadow-sm p-8">
@@ -208,32 +227,43 @@ export default function Auth() {
                   Se connecter
                 </Button>
 
-                <div className="relative flex py-2 items-center">
-                  <div className="flex-grow border-t border-slate-200"></div>
-                  <span className="flex-shrink mx-4 text-xs text-slate-400">OU</span>
-                  <div className="flex-grow border-t border-slate-200"></div>
-                </div>
+                {DEMO_MODE_ALLOWED && (
+                  <>
+                    <div className="relative flex py-2 items-center">
+                      <div className="flex-grow border-t border-slate-200"></div>
+                      <span className="flex-shrink mx-4 text-xs text-slate-400">ACCÈS DÉMONSTRATION</span>
+                      <div className="flex-grow border-t border-slate-200"></div>
+                    </div>
 
-                <div className="grid grid-cols-2 gap-3 pt-1">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    className="border-slate-200 text-charcoal hover:bg-slate-50 text-xs py-5 h-auto flex flex-col items-center gap-1 cursor-pointer"
-                    onClick={() => handleDemoSignIn('agent')}
-                  >
-                    <span className="font-semibold text-sm">Mode Agent</span>
-                    <span className="text-[10px] text-slate font-normal">Accès standard</span>
-                  </Button>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    className="border-crimson text-crimson hover:bg-crimson/10 hover:text-crimson text-xs py-5 h-auto flex flex-col items-center gap-1 cursor-pointer"
-                    onClick={() => handleDemoSignIn('admin')}
-                  >
-                    <span className="font-semibold text-sm text-crimson">✦ Mode Admin</span>
-                    <span className="text-[10px] text-crimson/80 font-normal">Accès administrateur</span>
-                  </Button>
-                </div>
+                    <div className="grid grid-cols-2 gap-3 pt-1">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="border-slate-200 text-charcoal hover:bg-slate-50 text-xs py-5 h-auto flex flex-col items-center gap-1 cursor-pointer"
+                        onClick={() => handleDemoSignIn('agent')}
+                      >
+                        <span className="font-semibold text-sm">Agent (synthétique)</span>
+                        <span className="text-[10px] text-slate font-normal">Vue agent de recouvrement</span>
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="border-crimson text-crimson hover:bg-crimson/10 hover:text-crimson text-xs py-5 h-auto flex flex-col items-center gap-1 cursor-pointer"
+                        onClick={() => handleDemoSignIn('admin')}
+                      >
+                        <span className="font-semibold text-sm text-crimson">✦ Admin (synthétique)</span>
+                        <span className="text-[10px] text-crimson/80 font-normal">Instance de démo uniquement</span>
+                      </Button>
+                    </div>
+
+                    <div className="flex items-start gap-2 text-[11px] text-slate bg-amber-50 border border-amber-200 rounded p-2.5">
+                      <ShieldAlert size={14} className="mt-0.5 shrink-0 text-amber-600" />
+                      <span>
+                        Comptes de démonstration backend : <code className="font-mono">agent@recovai.tn</code>, <code className="font-mono">directeur@recovai.tn</code>, <code className="font-mono">admin@recovai.tn</code> — mots de passe communiqués par l'équipe RecovAI. Données 100 % synthétiques.
+                      </span>
+                    </div>
+                  </>
+                )}
               </form>
             </TabsContent>
 

@@ -110,7 +110,7 @@ export default function Ifrs9Engine() {
       <div className="flex items-start gap-3 p-4 rounded-2xl bg-gold/10 border border-gold/30">
         <AlertTriangle size={18} className="text-gold shrink-0 mt-0.5" />
         <p className="text-xs text-navy">
-          <strong>Outil d'aide à la décision uniquement.</strong> L'analyse est assistée par IA, révisable par un analyste humain et soumise à validation institutionnelle. Conforme aux principes Bâle III et IFRS 9 (SPPI, classification par bucket, ASRC, forward-looking).
+          <strong>Outil d'aide à la décision uniquement.</strong> L'analyse est assistée par IA, révisable par un analyste humain et soumise à validation institutionnelle. Aligné sur les principes Bâle III et IFRS 9 (SPPI, classification par bucket, ASRC, forward-looking).
         </p>
       </div>
 

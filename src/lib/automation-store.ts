@@ -35,7 +35,7 @@ const DEFAULT_REMINDER_RULES: ReminderRule[] = [
     execution_window_end: '19:00',
     max_attempts: 1,
     retry_policy: 'stop',
-    created_by: 'Ahmed B.',
+    created_by: 'Agent Démo 1',
     created_at: '2026-05-01T10:00:00Z',
     updated_at: '2026-05-20T14:30:00Z',
     executions_count: 147,
@@ -64,7 +64,7 @@ const DEFAULT_REMINDER_RULES: ReminderRule[] = [
     execution_window_end: '18:00',
     max_attempts: 2,
     retry_policy: 'retry_3_times_1h',
-    created_by: 'Leila M.',
+    created_by: 'Agent Démo 3',
     created_at: '2026-05-05T08:00:00Z',
     updated_at: '2026-05-05T08:00:00Z',
     executions_count: 64,
@@ -93,7 +93,7 @@ const DEFAULT_REMINDER_RULES: ReminderRule[] = [
     execution_window_end: '17:00',
     max_attempts: 1,
     retry_policy: 'escalate',
-    created_by: 'Ahmed B.',
+    created_by: 'Agent Démo 1',
     created_at: '2026-05-10T11:20:00Z',
     updated_at: '2026-05-12T09:15:00Z',
     executions_count: 12,
@@ -121,7 +121,7 @@ const DEFAULT_REMINDER_RULES: ReminderRule[] = [
     execution_window_end: '18:00',
     max_attempts: 3,
     retry_policy: 'escalate',
-    created_by: 'Sami K.',
+    created_by: 'Agent Démo 2',
     created_at: '2026-05-12T16:00:00Z',
     updated_at: '2026-05-25T10:20:00Z',
     executions_count: 38,
@@ -149,7 +149,7 @@ const DEFAULT_REMINDER_RULES: ReminderRule[] = [
     execution_window_end: '20:00',
     max_attempts: 1,
     retry_policy: 'stop',
-    created_by: 'Leila M.',
+    created_by: 'Agent Démo 3',
     created_at: '2026-05-15T09:30:00Z',
     updated_at: '2026-05-15T09:30:00Z',
     executions_count: 29,
@@ -296,7 +296,7 @@ const DEFAULT_WORKFLOWS: Workflow[] = [
     description: 'Scénario complet alternant SMS courtois, rappel email, WhatsApp et escalade tâche',
     portfolio_type: 'leasing',
     status: 'active',
-    created_by: 'Ahmed B.',
+    created_by: 'Agent Démo 1',
     created_at: '2026-05-10T09:00:00Z',
     updated_at: '2026-05-25T14:30:00Z',
     executions_count: 82,
@@ -326,14 +326,14 @@ const DEFAULT_WORKFLOWS: Workflow[] = [
     description: 'Procédure critique à fort encours pour l\'affacturage impliquant huissiers et avocats',
     portfolio_type: 'factoring',
     status: 'paused',
-    created_by: 'Leila M.',
+    created_by: 'Agent Démo 3',
     created_at: '2026-05-18T10:15:00Z',
     updated_at: '2026-05-18T10:15:00Z',
     executions_count: 14,
     nodes: [
       { id: 'wf2-n1', type: 'trigger', label: 'Dossier créé', description: 'Détecte la création d\'un impayé factoring', config: { target: 'case_created' } },
       { id: 'wf2-n2', type: 'condition', label: 'Montant > 15K TND ?', description: 'Vérifie si la créance est substantielle', config: { limit: 15000 } },
-      { id: 'wf2-n3', type: 'action', label: 'Notifier Juridique & Avocat d\'office', description: 'Alerte immédiate Maître Sonia Trabelsi', config: { channel: 'email', template_id: 'tmpl-04' } },
+      { id: 'wf2-n3', type: 'action', label: 'Notifier Juridique & Avocat d\'office', description: 'Alerte immédiate Maître Demo Alpha', config: { channel: 'email', template_id: 'tmpl-04' } },
       { id: 'wf2-n4', type: 'action', label: 'SMS Relance Forte', description: 'Template de mise en demeure client', config: { channel: 'sms', template_id: 'tmpl-02' } }
     ],
     edges: [
@@ -356,7 +356,7 @@ const DEFAULT_HISTORY: ExecutionHistory[] = [
     action_taken: 'Envoi SMS de Rappel J-3',
     status: 'success',
     timestamp: '2026-05-30T09:12:00Z',
-    details: 'Destinataire: +216 98 123 456. Message envoyé et délivré avec succès (Opérateur Tunisie Telecom).'
+    details: 'Destinataire: +216 30 000 000. Message envoyé et délivré avec succès (Opérateur Tunisie Telecom).'
   },
   {
     id: 'hist-02',
@@ -369,14 +369,14 @@ const DEFAULT_HISTORY: ExecutionHistory[] = [
     action_taken: 'Relance Forte Promesse Rompue',
     status: 'success',
     timestamp: '2026-05-30T10:05:00Z',
-    details: 'Destinataire: +216 22 555 987. Message WhatsApp lu (double coche bleue) à 10:14.'
+    details: 'Destinataire: +216 30 000 000. Message WhatsApp lu (double coche bleue) à 10:14.'
   },
   {
     id: 'hist-03',
     rule_id: 'rule-03',
     type: 'reminder',
     dossier_id: 'LIT-2024-0003',
-    debtor_name: 'GLOBAL TECH TUNISIE',
+    debtor_name: 'TECH GLOBAL DEMO',
     portfolio_type: 'Factoring',
     channel: 'Email',
     action_taken: 'Envoi Mise en Demeure Officielle J+15',
@@ -389,7 +389,7 @@ const DEFAULT_HISTORY: ExecutionHistory[] = [
     rule_id: 'rule-02',
     type: 'reminder',
     dossier_id: 'LIT-2024-0001',
-    debtor_name: 'SOCIETE ALPHA SARL',
+    debtor_name: 'DEBITEUR ALPHA DEMO',
     portfolio_type: 'Factoring',
     channel: 'WhatsApp',
     action_taken: 'WhatsApp Relance Forte J+3',
@@ -402,11 +402,11 @@ const DEFAULT_HISTORY: ExecutionHistory[] = [
     rule_id: 'esc-02',
     type: 'escalation',
     dossier_id: 'LIT-2024-0001',
-    debtor_name: 'SOCIETE ALPHA SARL',
+    debtor_name: 'DEBITEUR ALPHA DEMO',
     action_taken: 'Règle d’escalade: Alerte Superviseur si Promesse Rompue J+15',
     status: 'success',
     timestamp: '2026-05-30T09:40:00Z',
-    details: 'Dossier ré-affecté à Leila M. (Superviseuse Recouvrement). Priorité augmentée de "Normale" à "Urgente". Tâche prioritaire créée.'
+    details: 'Dossier ré-affecté à Agent Démo 3 (Superviseuse Recouvrement). Priorité augmentée de "Normale" à "Urgente". Tâche prioritaire créée.'
   },
   {
     id: 'hist-06',
@@ -656,9 +656,9 @@ export const AutomationStore = {
     
     // Simulate list of matching mock clients
     const mockClients = [
-      { id: '1', name: 'SOCIETE ALPHA SARL', overdueDays: 145, overdueAmount: 145000, portfolio: 'factoring', risk: 'Critique' },
-      { id: '2', name: 'BEN SALEM AHMED', overdueDays: 95, overdueAmount: 22000, portfolio: 'leasing', risk: 'Moyen' },
-      { id: '3', name: 'GLOBAL TECH TUNISIE', overdueDays: 130, overdueAmount: 320000, portfolio: 'factoring', risk: 'Élevé' },
+      { id: '1', name: 'DEBITEUR ALPHA DEMO', overdueDays: 145, overdueAmount: 145000, portfolio: 'factoring', risk: 'Critique' },
+      { id: '2', name: 'PARTICULIER DEMO 01', overdueDays: 95, overdueAmount: 22000, portfolio: 'leasing', risk: 'Moyen' },
+      { id: '3', name: 'TECH GLOBAL DEMO', overdueDays: 130, overdueAmount: 320000, portfolio: 'factoring', risk: 'Élevé' },
       { id: '4', name: 'STE EL NOUR SARL', overdueDays: 110, overdueAmount: 14200, portfolio: 'microfinance', risk: 'Faible' },
       { id: '5', name: 'BEN AMER SALMA', overdueDays: 95, overdueAmount: 28000, portfolio: 'leasing', risk: 'Élevé' }
     ];

@@ -1,5 +1,9 @@
 import { Router } from 'express';
 import { db } from '../db/dataStore';
+import { audit } from '../auth';
+import { scopedDossiers } from '../db/repo';
+import { validate, leasingImportSchema, factoringInvoiceSchema, lawyerBailiffSchema } from '../validation';
+import { redactForPrompt } from '../redact';
 import { GoogleGenAI } from '@google/genai';
 
 const router = Router();
@@ -129,6 +133,8 @@ router.post('/leasing', (req, res) => {
   contracts.unshift(newContract);
   db.save();
 
+  audit('CREATE_LEASING', `Création du contrat de leasing ${contract_ref} (${lessee_name})`, req.auth);
+
   res.status(201).json(newContract);
 });
 
@@ -238,6 +244,8 @@ router.post('/factoring/invoices', (req, res) => {
   db.getFactoringInvoices().unshift(newInvoice);
   db.save();
 
+  audit('FACTORING_INVOICE_FUNDED', `Cession financée ${invoiceNumber} — ${amt.toLocaleString('fr-TN')} TND (débiteur ${debtor.name}, limite consommée ${debtor.usedLimit})`, req.auth);
+
   res.status(201).json(newInvoice);
 });
 
@@ -246,8 +254,8 @@ router.post('/factoring/invoices', (req, res) => {
 // ==========================================
 
 // GET microfinance loans & clients
-router.get('/microfinance/loans', (req, res) => {
-  const dossiers = db.getDossiers().filter(d => d.portfolio === 'Microfinance');
+router.get('/microfinance/loans', async (req, res) => {
+  const dossiers = (await scopedDossiers(req.auth?.institution || null)).filter(d => d.portfolio === 'Microfinance');
   res.json({
     count: dossiers.length,
     data: dossiers
@@ -257,8 +265,8 @@ router.get('/microfinance/loans', (req, res) => {
 // ==========================================
 // 4. CROSS-PORTFOLIO CONSOLIDATED STATS
 // ==========================================
-router.get('/stats', (req, res) => {
-  const dossiers = db.getDossiers();
+router.get('/stats', async (req, res) => {
+  const dossiers = await scopedDossiers(req.auth?.institution || null);
   const leasing = db.getLeasing();
   const invoices = db.getFactoringInvoices();
 
@@ -293,7 +301,7 @@ router.post('/ai-analysis', async (req, res) => {
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
       const prompt = `Tu es l'expert en chef du risque de crédit et de recouvrement bancaire pour la Tunisie.
 Analyse ce portefeuille: "${portfolioType}".
-Métriques fournies: ${JSON.stringify(riskMetrics || {})}.
+Métriques fournies (pseudonymisées — lot P1.4): ${redactForPrompt(riskMetrics || {}).text}.
 Rédige un avis synthétique structuré en français avec:
 1. Diagnostic de vulnérabilité sectorielle (en tenant compte de la conjoncture tunisienne et de la BCT)
 2. Détection des signaux faibles de sinistralité
@@ -315,9 +323,12 @@ Sois concis, direct et professionnel.`;
     }
   }
 
-  // Fallback realistic response
+  // Fallback honnête : texte de démonstration explicitement marqué.
   res.json({
-    analysis: `### Diagnostic Stratégique du Portefeuille ${portfolioType}
+    demoFallback: true,
+    analysis: `> ⚠️ **Texte de démonstration** — aucun modèle d'analyse n'a été exécuté (clé GEMINI_API_KEY non configurée). Outil d'aide à la décision uniquement.
+
+### Diagnostic Stratégique du Portefeuille ${portfolioType}
 
 1. **Vulnérabilité Sectorielle**:
 Le portefeuille affiche une sensibilité accrue aux délais de paiement dans les secteurs BTP et sous-traitance industrielle. Le taux de retard moyen s'établit à 42 jours, en ligne avec la médiane du secteur financier tunisien.
