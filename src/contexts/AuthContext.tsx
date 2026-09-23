@@ -43,6 +43,7 @@ export function storeAuth(auth: StoredAuth) {
 export function clearAuth() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem('recovai_demo_user'); // nettoyage legacy du contournement supprimé
+  localStorage.removeItem('recovai_refresh_token');
 }
 
 type AuthContextValue = {
@@ -52,6 +53,7 @@ type AuthContextValue = {
   loading: boolean;
   signOut: () => Promise<void>;
   signInWithToken: (token: string, user: LiteUser, expiresAt: number) => void;
+  refreshSession: () => Promise<boolean>;
   /** Uniquement disponible lorsque VITE_DEMO_MODE=1 — jamais en build « production ». */
   signInWithDemo: (email: string, name?: string) => void;
 };
@@ -116,7 +118,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(liteUser);
   };
 
+  const refreshSession = async (): Promise<boolean> => {
+    try {
+      const refreshToken = localStorage.getItem('recovai_refresh_token');
+      if (!refreshToken) return false;
+      const res = await fetch('/api/auth/mfa/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
+      });
+      if (!res.ok) {
+        clearAuth();
+        setUser(null);
+        setSession(null);
+        return false;
+      }
+      const data = await res.json();
+      if (data.refreshToken) localStorage.setItem('recovai_refresh_token', data.refreshToken);
+      storeAuth({ token: data.token, user: data.user, expiresAt: data.expiresAt });
+      setUser(data.user);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   const signOut = async () => {
+    try {
+      const refreshToken = localStorage.getItem('recovai_refresh_token');
+      if (refreshToken) {
+        await fetch('/api/auth/mfa/logout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${readStoredAuth()?.token || ''}` },
+          body: JSON.stringify({ refreshToken }),
+        }).catch(() => {});
+      }
+    } catch { /* ignore */ }
     clearAuth();
     if (SUPABASE_CONFIGURED) {
       try {
@@ -133,7 +170,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     (user && 'role' in (user as any) ? (user as any).app_metadata?.role ?? (user as LiteUser).role : undefined) as AuthContextValue['role'] | undefined;
 
   return (
-    <AuthContext.Provider value={{ user, session, role: role ?? 'agent', loading, signOut, signInWithDemo, signInWithToken }}>
+    <AuthContext.Provider value={{ user, session, role: role ?? 'agent', loading, signOut, signInWithDemo, signInWithToken, refreshSession }}>
       {children}
     </AuthContext.Provider>
   );

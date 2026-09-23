@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Users, Shield, UserCog, Search, CheckCircle2, Scale, Zap, Bell, AlertTriangle, FileWarning, Sun, Moon, Monitor, Palette, Landmark, SlidersHorizontal, Cable, Lock } from 'lucide-react';
+import { Users, Shield, UserCog, Search, CheckCircle2, Scale, Zap, Bell, AlertTriangle, FileWarning, Sun, Moon, Monitor, Palette, Landmark, SlidersHorizontal, Cable, Lock, KeyRound } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { useTheme } from '@/contexts/ThemeContext';
 import InstitutionsManagement from '@/components/settings/InstitutionsManagement';
 import IntegrationsBancaires from '@/pages/IntegrationsBancaires';
 import EnterpriseSecurity from '@/pages/EnterpriseSecurity';
+import MfaSetup from '@/components/auth/MfaSetup';
 
 interface UserProfile {
   uid: string;
@@ -142,6 +143,20 @@ export default function Settings() {
           <Lock size={15} className={activeTab === 'securite' ? 'text-indigo-600 dark:text-indigo-400' : ''} />
           <span>Sécurité & SGBD Bancaire</span>
         </button>
+
+        <button
+          onClick={() => handleTabClick('mfa')}
+          className={cn(
+            "flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all",
+            activeTab === 'mfa'
+              ? "bg-white dark:bg-slate-800 text-navy dark:text-white shadow-sm"
+              : "text-muted-foreground hover:text-navy dark:hover:text-white"
+          )}
+        >
+          <KeyRound size={15} className={activeTab === 'mfa' ? 'text-emerald-600' : ''} />
+          <span>MFA TOTP (P1.7)</span>
+          <span className="ml-1 px-1.5 py-0.5 rounded text-[9px] bg-emerald-100 text-emerald-700">NOUVEAU</span>
+        </button>
       </div>
 
       {successMessage && (
@@ -159,6 +174,21 @@ export default function Settings() {
       {/* TAB CONTENT: Sécurité & SGBD */}
       {activeTab === 'securite' && (
         <EnterpriseSecurity />
+      )}
+
+      {/* TAB CONTENT: MFA */}
+      {activeTab === 'mfa' && (
+        <div className="space-y-6">
+          <MfaSetup />
+          <div className="bg-card rounded-2xl p-6 border">
+            <h3 className="font-bold mb-2">Assistant TOTP & Documentation</h3>
+            <p className="text-sm text-muted-foreground mb-3">Page d’assistance pour générer des codes TOTP côté client (démo, sans envoi serveur) et déroulé de démo multi-tenant + MFA.</p>
+            <div className="flex gap-2">
+              <a href="/totp-assistant" className="px-4 py-2 bg-emerald-600 text-white rounded-md text-sm">Ouvrir /totp-assistant</a>
+              <a href="/docs/DEMO-MULTI-TENANT-MFA.md" target="_blank" className="px-4 py-2 border rounded-md text-sm">Voir doc démo (md)</a>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* TAB CONTENT: Integrations */}

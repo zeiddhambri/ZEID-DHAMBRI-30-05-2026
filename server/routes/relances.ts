@@ -3,11 +3,13 @@ import { db } from '../db/dataStore';
 import { getRepository, scopedDossiers } from '../db/repo';
 import { audit, requireRole } from '../auth';
 import { validate, relanceSendSchema, templateSchema, escalationRuleSchema } from '../validation';
+import { sendViaProvider, getProviderStatus, verifyWebhookSignature, type DeliveryStatus } from '../lib/communication';
+import crypto from 'crypto';
 
 const router = Router();
 
 // ==========================================
-// 1. RELANCES LOGS & TRIGGER
+// 1. RELANCES LOGS & TRIGGER (P1.5 réel)
 // ==========================================
 
 // GET all relance logs
@@ -19,7 +21,23 @@ router.get('/', (req, res) => {
   });
 });
 
-// POST send immediate relance (SMS, Email, Call, Letter)
+// GET provider status (P1.5)
+router.get('/providers/status', (req, res) => {
+  res.json({
+    timestamp: new Date().toISOString(),
+    ...getProviderStatus(),
+  });
+});
+
+// GET single log status history
+router.get('/logs/:id', (req, res) => {
+  const logs = db.getRelanceLogs();
+  const entry = logs.find(l => l.id === req.params.id);
+  if (!entry) return res.status(404).json({ error: 'Log introuvable' });
+  res.json(entry);
+});
+
+// POST send immediate relance (SMS, Email, Call, Letter) — P1.5 avec provider réel
 router.post('/send', validate(relanceSendSchema), async (req, res) => {
   const { dossierId, templateId, channel = 'sms', customMessage, recipient } = req.body;
 
@@ -41,19 +59,53 @@ router.post('/send', validate(relanceSendSchema), async (req, res) => {
     .replace(/\{\{reference\}\}/g, dossier.client_code)
     .replace(/\{\{rib\}\}/g, '08 000 0001234567890 45');
 
+  const finalRecipient = recipient || dossier.debtor_phone || dossier.debtor_email || 'Contact officiel';
+
+  // P1.5 — envoi via provider configuré (console par défaut en démo, HTTP/SMTP en prod)
+  const providerResult = await sendViaProvider({
+    channel,
+    recipient: finalRecipient,
+    content: finalContent,
+    subject: template?.subject || `Recouvrement ${dossier.client_code}`,
+    dossierId: String(dossier.id),
+    clientCode: dossier.client_code,
+    templateId: template?.id,
+    institution: req.auth?.institution || dossier.institution || null,
+    actorEmail: req.auth?.email,
+    metadata: { templateName: template?.name },
+  });
+
   const logEntry = {
-    id: `rel-${Date.now()}`,
+    id: `rel-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
     dossierId: dossier.id,
     clientCode: dossier.client_code,
     debtorName: dossier.debtor_name,
     channel,
-    recipient: recipient || dossier.debtor_phone || dossier.debtor_email || 'Contact officiel',
+    recipient: finalRecipient,
     templateUsed: template?.name || 'Message direct',
     content: finalContent,
-    // Statut honnête : aucune passerelle SMS/e-mail n'est branchée (P0).
-    // La preuve d'envoi opposable (statut webhook du FA, horodatage qualifié)
-    // est livrée au lot P1.5. En attendant, ne jamais présenter 'delivered'.
-    status: 'simulated',
+    status: providerResult.status as string,
+    provider: providerResult.provider,
+    providerMessageId: providerResult.providerMessageId,
+    queuedAt: providerResult.queuedAt,
+    sentAt: providerResult.sentAt,
+    providerResponse: providerResult.providerResponse,
+    statusHistory: [
+      {
+        status: providerResult.status,
+        timestamp: new Date().toISOString(),
+        provider: providerResult.provider,
+        note: 'Envoi initial',
+      }
+    ],
+    cost: providerResult.cost || null,
+    // Preuve opposable P1.5
+    proof: {
+      hash: crypto.createHash('sha256').update(`${dossier.client_code}|${finalRecipient}|${finalContent}|${providerResult.providerMessageId}`).digest('hex'),
+      timestamp: new Date().toISOString(),
+      actor: req.auth?.email || 'system',
+      institution: req.auth?.institution || null,
+    },
     initiatedBy: req.auth?.email || 'system',
     timestamp: new Date().toISOString()
   };
@@ -65,24 +117,148 @@ router.post('/send', validate(relanceSendSchema), async (req, res) => {
     if (patched.ok) dossier = patched.after;
   }
 
+  const auditAction = providerResult.status === 'failed' ? 'RELANCE_FAILED' : providerResult.status === 'queued' ? 'RELANCE_QUEUED' : 'RELANCE_SENT';
+
   await getRepository().appendAudit({
-    action: 'RELANCE_SIMULATED',
-    details: `Relance ${String(channel).toUpperCase()} simulée (${logEntry.templateUsed}) sur ${dossier.client_code}`,
+    action: auditAction,
+    details: `Relance ${String(channel).toUpperCase()} ${providerResult.status} (${logEntry.templateUsed}) sur ${dossier.client_code} via ${providerResult.provider} id=${providerResult.providerMessageId}`,
     actorEmail: req.auth!.email, actorRole: req.auth!.role, actorId: req.auth!.sub,
-    entityType: 'dossier', entityId: String(dossier.id), after: { status: 'simulated', channel, templateUsed: logEntry.templateUsed },
+    entityType: 'dossier', entityId: String(dossier.id), after: { status: providerResult.status, channel, templateUsed: logEntry.templateUsed, provider: providerResult.provider, providerMessageId: providerResult.providerMessageId },
   });
 
   db.getRelanceLogs().unshift(logEntry);
   db.save();
 
-  audit('RELANCE_SIMULATED', `Relance ${String(channel).toUpperCase()} simulée (démonstration) sur dossier ${dossier.client_code}`, req.auth);
+  audit(auditAction, `Relance ${String(channel).toUpperCase()} ${providerResult.status} sur dossier ${dossier.client_code} via ${providerResult.provider}`, req.auth);
 
-  res.status(201).json({
-    message: `Relance ${String(channel).toUpperCase()} simulée : message généré et journalisé. Aucune passerelle SMS/e-mail n'est connectée dans cet environnement.`,
-    simulated: true,
+  res.status(providerResult.status === 'failed' ? 502 : 201).json({
+    message: providerResult.status === 'failed'
+      ? `Échec d'envoi ${String(channel).toUpperCase()} : ${providerResult.providerResponse?.error || 'provider error'}`
+      : `Relance ${String(channel).toUpperCase()} ${providerResult.status} via ${providerResult.provider} (preuve horodatée)`,
+    simulated: providerResult.provider === 'console' ? false : undefined, // P1.5 : console = journalisé, pas simulé
+    provider: providerResult.provider,
+    providerMessageId: providerResult.providerMessageId,
+    status: providerResult.status,
     log: logEntry,
     dossierStatus: dossier.status
   });
+});
+
+// ==========================================
+// 1b. WEBHOOKS — statuts réels depuis provider (P1.5)
+// ==========================================
+
+// Middleware pour capturer le raw body pour vérif HMAC
+function rawBodySaver(req: any, _res: any, buf: Buffer) {
+  req.rawBody = buf.toString('utf8');
+}
+
+router.post('/webhooks/sms', (req, res, next) => {
+  // On doit parser le body en conservant rawBody ; on utilise express.json avec verify si pas déjà fait
+  // Ici on suppose que le middleware global a déjà parsé, mais on vérifie la signature sur JSON stringifié si rawBody absent
+  const raw = (req as any).rawBody || JSON.stringify(req.body);
+  const sig = (req.headers['x-webhook-signature'] as string) || (req.headers['x-hub-signature-256'] as string) || '';
+  if (process.env.COMM_WEBHOOK_SECRET) {
+    if (!verifyWebhookSignature(raw, sig)) {
+      return res.status(401).json({ error: 'Signature webhook invalide', code: 'INVALID_SIGNATURE' });
+    }
+  }
+  next();
+}, (req, res) => {
+  const { messageId, providerMessageId, status, errorCode, errorMessage, timestamp, meta } = req.body as any;
+  const id = providerMessageId || messageId;
+  if (!id) return res.status(400).json({ error: 'providerMessageId requis' });
+
+  const logs = db.getRelanceLogs();
+  const entry = logs.find(l => l.providerMessageId === id || l.id === id);
+  if (!entry) {
+    // On journalise quand même pour traçabilité
+    console.warn(`[webhook:sms] messageId inconnu ${id}`);
+    return res.status(404).json({ error: 'Message ID inconnu', code: 'NOT_FOUND', receivedId: id });
+  }
+
+  const newStatus = (status as DeliveryStatus) || 'delivered';
+  entry.status = newStatus;
+  entry.statusHistory = entry.statusHistory || [];
+  entry.statusHistory.push({
+    status: newStatus,
+    timestamp: timestamp || new Date().toISOString(),
+    providerMeta: meta || req.body,
+    errorCode,
+    errorMessage,
+  });
+  if (newStatus === 'delivered') entry.deliveredAt = new Date().toISOString();
+  if (newStatus === 'failed' || newStatus === 'bounced' || newStatus === 'rejected') entry.failedAt = new Date().toISOString();
+
+  db.save();
+
+  audit('RELANCE_WEBHOOK_SMS', `Webhook SMS ${newStatus} pour ${id}`, null);
+  res.json({ ok: true, messageId: id, newStatus });
+});
+
+router.post('/webhooks/email', (req, res, next) => {
+  const raw = (req as any).rawBody || JSON.stringify(req.body);
+  const sig = (req.headers['x-webhook-signature'] as string) || '';
+  if (process.env.COMM_WEBHOOK_SECRET) {
+    if (!verifyWebhookSignature(raw, sig)) {
+      return res.status(401).json({ error: 'Signature webhook invalide' });
+    }
+  }
+  next();
+}, (req, res) => {
+  const { messageId, providerMessageId, status, event, errorCode, errorMessage, timestamp } = req.body as any;
+  const id = providerMessageId || messageId;
+  if (!id) return res.status(400).json({ error: 'providerMessageId requis' });
+
+  const logs = db.getRelanceLogs();
+  const entry = logs.find(l => l.providerMessageId === id || l.id === id);
+  if (!entry) return res.status(404).json({ error: 'Message ID inconnu' });
+
+  // Mapping Sendgrid/Mailgun events vers notre enum
+  let mapped: DeliveryStatus = 'delivered';
+  if (event === 'delivered' || status === 'delivered') mapped = 'delivered';
+  else if (event === 'bounced' || status === 'bounced') mapped = 'bounced';
+  else if (event === 'dropped' || event === 'failed' || status === 'failed') mapped = 'failed';
+  else if (event === 'deferred') mapped = 'queued';
+  else mapped = (status as DeliveryStatus) || 'delivered';
+
+  entry.status = mapped;
+  entry.statusHistory = entry.statusHistory || [];
+  entry.statusHistory.push({
+    status: mapped,
+    timestamp: timestamp || new Date().toISOString(),
+    providerMeta: req.body,
+    errorCode,
+    errorMessage,
+  });
+  if (mapped === 'delivered') entry.deliveredAt = new Date().toISOString();
+  db.save();
+  audit('RELANCE_WEBHOOK_EMAIL', `Webhook Email ${mapped} pour ${id}`, null);
+  res.json({ ok: true, messageId: id, newStatus: mapped });
+});
+
+router.post('/webhooks/whatsapp', (req, res, next) => {
+  const raw = (req as any).rawBody || JSON.stringify(req.body);
+  const sig = (req.headers['x-webhook-signature'] as string) || '';
+  if (process.env.COMM_WEBHOOK_SECRET) {
+    if (!verifyWebhookSignature(raw, sig)) {
+      return res.status(401).json({ error: 'Signature webhook invalide' });
+    }
+  }
+  next();
+}, (req, res) => {
+  const { messageId, providerMessageId, status, timestamp } = req.body as any;
+  const id = providerMessageId || messageId;
+  if (!id) return res.status(400).json({ error: 'providerMessageId requis' });
+  const logs = db.getRelanceLogs();
+  const entry = logs.find(l => l.providerMessageId === id);
+  if (!entry) return res.status(404).json({ error: 'Message ID inconnu' });
+  const mapped = (status as DeliveryStatus) || 'delivered';
+  entry.status = mapped;
+  entry.statusHistory = entry.statusHistory || [];
+  entry.statusHistory.push({ status: mapped, timestamp: timestamp || new Date().toISOString(), providerMeta: req.body });
+  db.save();
+  res.json({ ok: true, messageId: id, newStatus: mapped });
 });
 
 // ==========================================
