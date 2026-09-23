@@ -45,6 +45,7 @@ import CreditIfrs9 from "./pages/CreditIfrs9";
 import Client360 from "./pages/Client360";
 import IntegrationsBancaires from "./pages/IntegrationsBancaires";
 import EnterpriseSecurity from "./pages/EnterpriseSecurity";
+import TotpAssistant from "./pages/TotpAssistant";
 
 const queryClient = new QueryClient();
 
@@ -99,6 +100,7 @@ const App = () => (
               <Route path="/integrations" element={<Navigate to="/integrations-bancaires" replace />} />
               <Route path="/enterprise-security" element={<EnterpriseSecurity />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/totp-assistant" element={<TotpAssistant />} />
             </Route>
             </Route>
             <Route path="*" element={<NotFound />} />

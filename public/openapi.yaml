@@ -1,13 +1,14 @@
 openapi: 3.1.0
 info:
   title: RecovAI API
-  version: 1.1.0
+  version: 1.3.0
   description: |
     API du backend RecovAI (recouvrement, contentieux, risque crédit) pour banques,
     sociétés de leasing/factoring et institutions de microfinance.
 
     **Authentification** : `Authorization: Bearer <jeton>` obtenu via `POST /api/auth/login`
-    (jeton signé HMAC, expiration 8 h) ou via un jeton Supabase quand la voie SSO est activée.
+    (P1.7 : access 15 min + refresh 7j tournant, MFA TOTP) ou via un jeton Supabase quand la voie SSO est activée.
+    Si MFA actif : login en 2 étapes → `mfaRequired:true` → `POST /api/auth/login/mfa`.
 
     **Cloisonnement (P1)** : un compte rattaché à une institution (`institution` claim) ne
     voit et n'écrit que dans le portefeuille de son institution ; les comptes transverses
@@ -15,6 +16,10 @@ info:
 
     **Traçabilité** : toute écriture est journalisée (auteur, horodatage, différentiel
     avant/après, chaînage SHA-256) dans le journal d'audit append-only.
+
+    **P1.5** : connecteurs SMS/Email/WhatsApp réels avec webhooks HMAC, `proof.hash` opposable, `statusHistory`.
+
+    **P1.7** : MFA TOTP RFC 6238, lockout 5 échecs → 423, SSO OIDC/SAML stub + SCIM.
 servers:
   - url: /api
 tags:
@@ -226,9 +231,66 @@ paths:
   /relances/send:
     post:
       tags: [relances]
-      summary: 'Générer et journaliser une relance (simulate : aucune passerelle connectée en v1.1)'
+      summary: 'Envoyer une relance via provider réel (P1.5) — preuve opposable + statusHistory'
       security: [{ bearerAuth: [] }]
-      responses: { '201': { description: Reçu de journalisation } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                dossierId: { type: string }
+                channel: { type: string, enum: [sms, email, whatsapp, appel, lettre] }
+                templateId: { type: string }
+                customMessage: { type: string }
+                recipient: { type: string }
+      responses:
+        '201': { description: Relance envoyée (queued/sent) avec providerMessageId }
+        '502': { description: Échec provider }
+
+  /relances/providers/status:
+    get:
+      tags: [relances]
+      summary: 'Statut des providers SMS/Email/WhatsApp (P1.5)'
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: Config provider + webhook endpoints } }
+
+  /relances/logs/{id}:
+    get:
+      tags: [relances]
+      summary: 'Détail log relance avec statusHistory et proof.hash (P1.5)'
+      security: [{ bearerAuth: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: Log détaillé }, '404': { $ref: '#/components/responses/NotFound' } }
+
+  /relances/webhooks/sms:
+    post:
+      tags: [relances]
+      summary: 'Webhook SMS — statut réel depuis agrégateur (P1.5, HMAC)'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                providerMessageId: { type: string }
+                status: { type: string, enum: [queued, sent, delivered, failed, bounced, rejected] }
+                timestamp: { type: string, format: date-time }
+      responses: { '200': { description: Webhook traité }, '401': { description: Signature invalide } }
+
+  /relances/webhooks/email:
+    post:
+      tags: [relances]
+      summary: 'Webhook Email (Sendgrid/Mailgun/SMTP) — P1.5'
+      responses: { '200': { description: OK } }
+
+  /relances/webhooks/whatsapp:
+    post:
+      tags: [relances]
+      summary: 'Webhook WhatsApp — P1.5'
+      responses: { '200': { description: OK } }
 
   /credit-ifrs9/calculate-ecl:
     post:
@@ -239,6 +301,97 @@ paths:
         '200':
           description: Résultat détaillé et reproductible
         '400': { $ref: '#/components/responses/ValidationError' }
+
+  /auth/login/mfa:
+    post:
+      tags: [auth]
+      summary: 'Second step MFA TOTP (P1.7) — après login password'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, mfaCode]
+              properties:
+                email: { type: string, format: email }
+                mfaCode: { type: string, description: '6 chiffres TOTP ou 8 chars backup' }
+                mfaToken: { type: string, description: 'Token temporaire 5 min émis par /login' }
+      responses:
+        '200': { description: Token final 15 min + refresh 7j }
+        '401': { description: MFA invalide }
+        '423': { description: Compte verrouillé (lockout) }
+
+  /auth/mfa/setup:
+    post:
+      tags: [auth]
+      summary: 'Initialiser MFA TOTP (P1.7) — génère secret + QR + backup codes'
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: secret + otpauthUri + backupCodes } }
+
+  /auth/mfa/verify:
+    post:
+      tags: [auth]
+      summary: 'Vérifier code TOTP et activer MFA (P1.7)'
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code: { type: string }
+      responses: { '200': { description: MFA activé + nouveau token mfaVerified } }
+
+  /auth/mfa/status:
+    get:
+      tags: [auth]
+      summary: 'Statut MFA du compte courant (P1.7)'
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: enabled, backupCodes, totpRemainingSeconds } }
+
+  /auth/mfa/refresh:
+    post:
+      tags: [auth]
+      summary: 'Refresh tournant — rotation refresh token + nouveau access (P1.7)'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken: { type: string }
+      responses: { '200': { description: Nouveau token + nouveau refresh (ancien révoqué) } }
+
+  /auth/mfa/sessions:
+    get:
+      tags: [auth]
+      summary: 'Lister sessions actives (refresh tokens) — P1.7'
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: Liste sessions } }
+
+  /auth/mfa/logout:
+    post:
+      tags: [auth]
+      summary: 'Déconnexion + révocation refresh (P1.7) — ?all=1 pour globale'
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: Déconnecté } }
+
+  /auth/oidc/.well-known/openid-configuration:
+    get:
+      tags: [auth]
+      summary: 'Découverte OIDC — stub P1.7 prêt pour Entra ID'
+      responses: { '200': { description: Config OIDC RP } }
+
+  /auth/sso/policy:
+    get:
+      tags: [auth]
+      summary: 'Politique SSO/MFA/session (P1.7)'
+      responses: { '200': { description: Politique } }
 
   /health:
     get:

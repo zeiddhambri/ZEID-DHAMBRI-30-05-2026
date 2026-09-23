@@ -152,3 +152,36 @@ export const lawyerBailiffSchema = z.object({
   email: z.string().max(255).optional(),
   city: z.string().max(120).optional(),
 });
+
+// ---------- P1.5 — Communication ----------
+export const webhookStatusSchema = z.object({
+  messageId: z.string().optional(),
+  providerMessageId: z.string().optional(),
+  status: z.enum(['queued', 'sent', 'delivered', 'failed', 'bounced', 'rejected', 'simulated']).optional(),
+  event: z.string().optional(),
+  errorCode: z.string().max(100).optional(),
+  errorMessage: z.string().max(1000).optional(),
+  timestamp: z.string().optional(),
+  meta: z.any().optional(),
+}).passthrough();
+
+// ---------- P1.7 — MFA & SSO ----------
+export const mfaSetupSchema = z.object({});
+
+export const mfaVerifySchema = z.object({
+  code: z.string().trim().min(6).max(8),
+});
+
+export const mfaDisableSchema = z.object({
+  code: z.string().trim().min(6).max(8),
+});
+
+export const refreshTokenSchema = z.object({
+  refreshToken: z.string().trim().min(10).max(500),
+});
+
+export const loginMfaSchema = z.object({
+  email: z.string().trim().min(3).max(255),
+  mfaCode: z.string().trim().min(6).max(8),
+  mfaToken: z.string().trim().min(10).max(2000).optional(),
+});

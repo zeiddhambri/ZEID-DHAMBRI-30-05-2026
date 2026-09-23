@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
 import { Loader2, ArrowLeft, ShieldAlert } from 'lucide-react';
+import MfaVerify from '@/components/auth/MfaVerify';
 
 const emailSchema = z.string().trim().email({ message: 'Adresse email invalide' }).max(255);
 const passwordSchema = z
@@ -46,6 +47,11 @@ export default function Auth() {
   const [signInEmail, setSignInEmail] = useState('');
   const [signInPassword, setSignInPassword] = useState('');
 
+  // MFA step (P1.7)
+  const [mfaRequired, setMfaRequired] = useState(false);
+  const [mfaEmail, setMfaEmail] = useState('');
+  const [mfaToken, setMfaToken] = useState<string | undefined>(undefined);
+
   // Sign up
   const [signUpName, setSignUpName] = useState('');
   const [signUpEmail, setSignUpEmail] = useState('');
@@ -56,17 +62,30 @@ export default function Auth() {
     if (!authLoading && user) navigate(redirectTo, { replace: true });
   }, [user, authLoading, navigate, redirectTo]);
 
-  const serverLogin = async (email: string, password: string): Promise<boolean> => {
+  const serverLogin = async (email: string, password: string): Promise<{ mfaRequired?: boolean; mfaToken?: string } | boolean> => {
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
+    const body = await res.json().catch(() => ({}) as any);
     if (!res.ok) {
-      const body = await res.json().catch(() => ({}) as any);
+      // gestion lockout
+      if (res.status === 423) {
+        const retry = body.retryAfterSeconds || 900;
+        throw new Error(`Compte verrouillé — réessayez dans ${retry}s (politique P1.7 : 5 échecs → 15 min lockout)`);
+      }
       throw new Error(body?.error || `Échec de connexion (HTTP ${res.status})`);
     }
-    const data = await res.json();
+    if (body.mfaRequired) {
+      return { mfaRequired: true, mfaToken: body.mfaToken };
+    }
+    // login complet avec refresh token P1.7
+    const data = body;
+    // stocker refresh token si présent (localStorage)
+    if (data.refreshToken) {
+      try { localStorage.setItem('recovai_refresh_token', data.refreshToken); } catch { /* ignore */ }
+    }
     signInWithToken(data.token, data.user, data.expiresAt);
     return true;
   };
@@ -101,7 +120,14 @@ export default function Auth() {
         }
       }
 
-      await serverLogin(emailParse.data, signInPassword);
+      const result = await serverLogin(emailParse.data, signInPassword);
+      if (typeof result === 'object' && result.mfaRequired) {
+        setMfaRequired(true);
+        setMfaEmail(emailParse.data);
+        setMfaToken(result.mfaToken);
+        toast({ title: 'MFA requis', description: 'Saisissez le code TOTP de votre application d’authentification.' });
+        return;
+      }
       toast({ title: 'Bienvenue', description: 'Connexion réussie.' });
       navigate(redirectTo, { replace: true });
     } catch (error: any) {
@@ -113,6 +139,15 @@ export default function Auth() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleMfaSuccess = (data: { token: string; expiresAt: number; refreshToken: string; user: any }) => {
+    if (data.refreshToken) {
+      try { localStorage.setItem('recovai_refresh_token', data.refreshToken); } catch { /* ignore */ }
+    }
+    signInWithToken(data.token, data.user, data.expiresAt);
+    toast({ title: 'Bienvenue', description: 'MFA vérifié — connexion réussie.' });
+    navigate(redirectTo, { replace: true });
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -184,13 +219,16 @@ export default function Auth() {
       )}
 
       <main className="flex-1 flex items-center justify-center px-4 pb-12">
+        {mfaRequired ? (
+          <MfaVerify email={mfaEmail} mfaToken={mfaToken} onSuccess={handleMfaSuccess} onCancel={() => { setMfaRequired(false); setMfaEmail(''); setMfaToken(undefined); }} />
+        ) : (
         <div className="w-full max-w-md bg-white border border-border rounded-sm shadow-sm p-8">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-crimson text-2xl">✦</span>
             <span className="font-serif-display text-2xl text-charcoal">RecovAI</span>
           </div>
           <h1 className="text-xl font-medium text-charcoal mb-1">Accès à la plateforme</h1>
-          <p className="text-sm text-slate mb-6">Gestion du recouvrement bancaire</p>
+          <p className="text-sm text-slate mb-6">Gestion du recouvrement bancaire — P1.7 MFA TOTP + session courte</p>
 
           <Tabs value={tab} onValueChange={(v) => setTab(v as 'signin' | 'signup')}>
             <TabsList className="grid w-full grid-cols-2 mb-6">
@@ -311,6 +349,7 @@ export default function Auth() {
             </TabsContent>
           </Tabs>
         </div>
+        )}
       </main>
     </div>
   );

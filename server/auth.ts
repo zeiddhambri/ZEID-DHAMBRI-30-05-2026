@@ -1,10 +1,12 @@
-// RecovAI — Authentification applicative (lot P0 sécurité)
+// RecovAI — Authentification applicative (lots P0 + P1.7 sécurité renforcée)
 // Émission/vérification de jetons HMAC signés, store d'utilisateurs démo avec
-// hachage scrypt, rate-limiting du login, middleware requireAuth + requireRole.
+// hachage scrypt, rate-limiting du login, MFA TOTP, refresh tournant,
+// verrouillage après N échecs, révocation server-side, middleware requireAuth + requireRole.
 //
-// NOTE: module de durcissement "P0". En dur en production, remplacer par un
+// NOTE: module de durcissement P0/P1.7. En production, remplacer par un
 // fournisseur d'identité (OIDC/SAML SSO d'entreprise) et/ou la vérification
 // native des JWT Supabase (SUPABASE_JWT_SECRET supporté ci-dessous).
+// P1.7 ajoute : MFA TOTP, session courte + refresh tournant, lockout, OIDC stub.
 
 import crypto from 'crypto';
 import fs from 'fs';
@@ -22,10 +24,32 @@ export interface AuthUserPayload {
   iat: number;
   exp: number;
   iss: string;
+  /** P1.7 — MFA */
+  mfaVerified?: boolean;
+  amr?: string[]; // authentication methods references : pwd, mfa, otp, backup
+  /** P1.7 — session */
+  jti?: string;
+  sessionId?: string;
 }
 
-const TOKEN_TTL_SECONDS = 8 * 3600; // 8h de session, non renouvelée côté serveur en P0
+const TOKEN_TTL_SECONDS = 8 * 3600; // 8h legacy (mode démo) — P1.7 : 15 min access
+const TOKEN_TTL_SHORT_SECONDS = Number(process.env.AUTH_ACCESS_TTL_SECONDS || 15 * 60);
 const ISSUER = 'recovai-app';
+export const MFA_ISSUER = 'RecovAI';
+
+// P1.7 — stores (lazy import pour éviter cycles)
+let _mfaStore: any = null;
+function getMfaStore() {
+  if (!_mfaStore) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      _mfaStore = require('./lib/mfaStore');
+    } catch {
+      _mfaStore = null;
+    }
+  }
+  return _mfaStore;
+}
 
 // ---------------- Secret ----------------
 
@@ -113,7 +137,10 @@ function b64url(input: Buffer | string): string {
   return Buffer.from(input).toString('base64url');
 }
 
-export function signToken(user: { id: string; email: string; name: string; role: StoredUser['role']; institution?: string | null }, ttlSeconds: number = TOKEN_TTL_SECONDS): { token: string; expiresAt: number } {
+export function signToken(
+  user: { id: string; email: string; name: string; role: StoredUser['role']; institution?: string | null; mfaVerified?: boolean; amr?: string[] },
+  ttlSeconds: number = TOKEN_TTL_SECONDS
+): { token: string; expiresAt: number } {
   const now = Math.floor(Date.now() / 1000);
   const payload: AuthUserPayload = {
     sub: user.id,
@@ -124,10 +151,21 @@ export function signToken(user: { id: string; email: string; name: string; role:
     iat: now,
     exp: now + ttlSeconds,
     iss: ISSUER,
+    mfaVerified: user.mfaVerified ?? false,
+    amr: user.amr ?? ['pwd'],
+    jti: crypto.randomUUID(),
   };
   const body = b64url(JSON.stringify(payload));
   const sig = crypto.createHmac('sha256', loadSecret()).update(body).digest();
   return { token: `${body}.${b64url(sig)}`, expiresAt: (now + ttlSeconds) * 1000 };
+}
+
+export function signShortToken(user: { id: string; email: string; name: string; role: StoredUser['role']; institution?: string | null; mfaVerified?: boolean; amr?: string[] }): { token: string; expiresAt: number } {
+  return signToken(user, TOKEN_TTL_SHORT_SECONDS);
+}
+
+export function getAccessTtl() {
+  return TOKEN_TTL_SHORT_SECONDS;
 }
 
 export function verifyToken(token: string): AuthUserPayload | null {
@@ -188,6 +226,8 @@ export function authenticateRequest(rawToken: string | undefined): AuthUserPaylo
       iat: 0,
       exp: Math.floor(Date.now() / 1000) + 86400,
       iss: 'recovai-demo',
+      mfaVerified: true,
+      amr: ['demo'],
     };
   }
   return verifyToken(rawToken) ?? verifySupabaseJwt(rawToken);
@@ -209,6 +249,18 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
   if (!auth) {
     return res.status(401).json({ error: 'Authentification requise', code: 'UNAUTHORIZED' });
   }
+  // P1.7 — si MFA est activé pour l'utilisateur, exiger mfaVerified sauf sur les routes MFA elles-mêmes
+  const isMfaRoute = req.originalUrl.includes('/mfa/') || req.originalUrl.includes('/auth/mfa');
+  if (!isMfaRoute) {
+    try {
+      const mfaStore = getMfaStore();
+      if (mfaStore && mfaStore.isMfaEnabled && mfaStore.isMfaEnabled(auth.sub)) {
+        if (!auth.mfaVerified) {
+          return res.status(403).json({ error: 'MFA requis — vérification TOTP nécessaire', code: 'MFA_REQUIRED', mfaRequired: true });
+        }
+      }
+    } catch { /* ignore si store non dispo */ }
+  }
   req.auth = auth;
   next();
 }
@@ -224,6 +276,18 @@ export function requireRole(...roles: AuthUserPayload['role'][]) {
     }
     next();
   };
+}
+
+// P1.7 — middleware qui impose MFA vérifié (même si le compte n'a pas MFA, il passe ; si MFA actif, doit être vérifié)
+export function requireMfaVerified(req: Request, res: Response, next: NextFunction) {
+  if (!req.auth) return res.status(401).json({ error: 'Authentification requise', code: 'UNAUTHORIZED' });
+  const mfaStore = getMfaStore();
+  if (mfaStore && mfaStore.isMfaEnabled && mfaStore.isMfaEnabled(req.auth.sub)) {
+    if (!req.auth.mfaVerified) {
+      return res.status(403).json({ error: 'MFA requis', code: 'MFA_REQUIRED', mfaRequired: true });
+    }
+  }
+  next();
 }
 
 // ---------------- Rate limiting (fenêtre glissante, en mémoire) ----------------
