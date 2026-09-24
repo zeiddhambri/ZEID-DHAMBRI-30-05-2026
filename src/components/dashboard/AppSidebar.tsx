@@ -9,7 +9,7 @@ import {
   Zap, Sliders, Smartphone, Workflow,
   Users, Settings, Cable, Database, KeyRound,
   ShieldCheck, LogOut, ChevronDown, ChevronRight,
-  Brain, Moon, Sun, Monitor
+  Brain, Sparkles, Moon, Sun, Monitor
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -60,6 +60,7 @@ const sidebarGroups: SidebarGroup[] = [
     items: [
       { name: 'Fiche Débiteur 360°', icon: Users, path: '/client-360' },
       { name: 'Dossiers de recouvrement', icon: FileText, path: '/dossiers' },
+      { name: 'Nouveaux dossiers', icon: Sparkles, path: '/nouveaux-dossiers' },
       { name: 'Tâches du jour', icon: CheckSquare, path: '/relances', tab: 'tasks' },
       { name: 'Relances', icon: RefreshCw, path: '/relances' },
       { name: 'Promesses de paiement', icon: Calendar, path: '/microfinance', tab: 'promises' },

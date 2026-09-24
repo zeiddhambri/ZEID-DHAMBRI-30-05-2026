@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Plus, MoreVertical, Building2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
@@ -35,6 +36,7 @@ export default function Dossiers() {
   const [dbDossiers, setDbDossiers] = useState<DossierComplet[]>([]);
   const [scope, setScope] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
 
   const load = async () => {
     if (!user) return;
@@ -75,10 +77,11 @@ export default function Dossiers() {
             {scope ? `Périmètre cloisonné : ${scope}` : 'Périmètre : tous portefeuilles (compte transverse)'}
           </span>
         </div>
-        <button onClick={() => setOpen(true)} className="flex items-center gap-2 px-5 py-2.5 bg-sky text-white rounded-xl text-sm font-bold hover:bg-sky/90 transition-all shadow-lg shadow-sky/20">
+        <div className="flex gap-2"><button onClick={() => navigate('/nouveaux-dossiers')} className="flex items-center gap-2 px-5 py-2.5 border border-sky text-sky rounded-xl text-sm font-bold hover:bg-sky/5 transition-all">✨ Nouveaux dossiers</button><button onClick={() => setOpen(true)} className="flex items-center gap-2 px-5 py-2.5 bg-sky text-white rounded-xl text-sm font-bold hover:bg-sky/90 transition-all shadow-lg shadow-sky/20">
           <Plus size={18} />
           Nouveau dossier
         </button>
+      </div>
       </div>
 
       <div className="flex flex-wrap gap-3 items-center">

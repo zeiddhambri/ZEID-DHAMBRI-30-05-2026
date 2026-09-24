@@ -11,6 +11,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Dashboard from "./pages/Dashboard";
 import Dossiers from "./pages/Dossiers";
+import NouveauxDossiers from "./pages/NouveauxDossiers";
 import Analytics from "./pages/Analytics";
 
 import Litigation from "./pages/Litigation";
@@ -65,6 +66,7 @@ const App = () => (
               <Route path="/dashboard" element={<Navigate to="/pilotage/tableau-de-bord-global" replace />} />
               <Route path="/pilotage/tableau-de-bord-global" element={<TableauDeBordGlobal />} />
               <Route path="/dossiers" element={<Dossiers />} />
+              <Route path="/nouveaux-dossiers" element={<NouveauxDossiers />} />
               <Route path="/client-360" element={<Client360 />} />
               <Route path="/analytics" element={<Navigate to="/pilotage/indicateurs-recouvrement" replace />} />
               <Route path="/pilotage/indicateurs-recouvrement" element={<IndicateursRecouvrement />} />
